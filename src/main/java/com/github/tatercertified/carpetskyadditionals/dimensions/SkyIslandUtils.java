@@ -20,7 +20,7 @@ public class SkyIslandUtils {
     }
 
     public static SkyIslandWorld getSkyIsland(ServerWorld island) {
-        Identifier id = island.getRegistryKey().getRegistry();
+        Identifier id = island.getRegistryKey().getValue();
         if (Objects.equals(id.getNamespace(), CarpetSkyAdditionals.MOD_ID)) {
             String name = id.getPath().replace("-nether", "").replace("-end", "");
             return getSkyIsland(name);
