@@ -8,6 +8,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
+import org.joml.Random;
 import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.fantasy.RuntimeWorldHandle;
@@ -51,7 +52,7 @@ public class SkyIslandWorld {
         // End
 
         RuntimeWorldConfig worldConfig2 = new RuntimeWorldConfig()
-                .setDimensionType(DimensionTypes.OVERWORLD)
+                .setDimensionType(DimensionTypes.THE_END)
                 .setDifficulty(Difficulty.HARD)
                 .setGenerator(server.getWorld(World.END).getChunkManager().getChunkGenerator());
 

@@ -2,15 +2,17 @@ package com.github.tatercertified.carpetskyadditionals.mixin;
 
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandWorld;
 import com.github.tatercertified.carpetskyadditionals.interfaces.EntityIslandDataInterface;
+import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.EndPortalBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -27,24 +29,30 @@ public class EndPortalBlockMixin {
         if (world instanceof ServerWorld && entity.canUsePortals() && VoxelShapes.matchesAnywhere(VoxelShapes.cuboid(entity.getBoundingBox().offset(-pos.getX(), -pos.getY(), -pos.getZ())), state.getOutlineShape(world, pos), BooleanBiFunction.AND)) {
 
             ServerWorld serverWorld;
-
+            BlockPos blockPos;
             SkyIslandWorld current = ((EntityIslandDataInterface)entity).getCurrentIsland();
-            // TODO TESTING
-            if (entity instanceof ServerPlayerEntity) {
-                entity.sendMessage(Text.literal("The name of the Island is: " + current.getName()));
-            }
-            // TODO TESTING
-            if (world.getDimension() == current.getEnd().getDimension()) {
+            if (world == current.getEnd()) {
                 serverWorld = current.getOverworld();
+                if (entity instanceof ServerPlayerEntity) {
+                    blockPos = ((ServerPlayerEntity) entity).getSpawnPointPosition();
+                    if (blockPos == null) {
+                        blockPos = current.getOverworld().getSpawnPos();
+                    }
+                } else {
+                    blockPos = current.getOverworld().getSpawnPos();
+                }
             } else {
                 serverWorld = current.getEnd();
+                serverWorld.setSpawnPos(ServerWorld.END_SPAWN_POS, 0);
+                ServerWorld.createEndSpawnPlatform(serverWorld);
+                blockPos = ServerWorld.END_SPAWN_POS;
             }
-            if (serverWorld == null) {
-                return;
-            }
-
-            serverWorld.getChunk(pos);
-            entity.moveToWorld(serverWorld);
+            TeleportTarget teleportTarget = getTeleportTarget(entity, blockPos);
+            FabricDimensions.teleport(entity,serverWorld,teleportTarget);
         }
+    }
+
+    private TeleportTarget getTeleportTarget(Entity entity, BlockPos teleport_pos) {
+        return new TeleportTarget(new Vec3d((double)teleport_pos.getX() + 0.5, teleport_pos.getY(), (double)teleport_pos.getZ() + 0.5), entity.getVelocity(), entity.getYaw(), entity.getPitch());
     }
 }
