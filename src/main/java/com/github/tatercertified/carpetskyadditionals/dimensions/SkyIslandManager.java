@@ -3,8 +3,6 @@ package com.github.tatercertified.carpetskyadditionals.dimensions;
 import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
 import com.github.tatercertified.carpetskyadditionals.mixin.SkyIslandCommandInvoker;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.Registry;
@@ -33,7 +31,7 @@ public class SkyIslandManager {
     public static void loadIslands(MinecraftServer server, NbtList nbt) {
         fantasy = Fantasy.get(server);
 
-        SkyIslandWorld vanilla = new VanillaWorldOverride("overworld", -1, server, fantasy);
+        SkyIslandWorld vanilla = new VanillaWorldOverride("overworld", -1, server, fantasy, server.getOverworld().getSeed(), new NbtCompound());
         islands.add(vanilla);
 
         if (nbt != null) {
@@ -75,7 +73,6 @@ public class SkyIslandManager {
         if (island.tryAddMember(player)) {
             ((PlayerIslandDataInterface)player).addHomeIsland(island);
             SkyIslandUtils.teleportToIsland(player, island.getOverworld(), GameMode.SURVIVAL);
-            player.setStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 15), player);
             player.changeGameMode(GameMode.SURVIVAL);
         } else {
             player.sendMessage(Text.literal("This Island has reached the max number of members: " + island.getMaxMembers()));

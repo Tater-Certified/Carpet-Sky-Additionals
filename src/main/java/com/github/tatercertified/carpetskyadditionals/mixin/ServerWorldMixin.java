@@ -35,7 +35,11 @@ public abstract class ServerWorldMixin {
         SkyIslandWorld island = SkyIslandUtils.getSkyIsland((ServerWorld) (Object) this);
         if (((ServerWorld)(Object)this).getDimensionEntry().matchesKey(DimensionTypes.THE_END)) {
             // TODO Rewrite EnderDragonFight so that it is per Dimension rather than server-wide
-            this.enderDragonFight = new EnderDragonFight(((ServerWorld) (Object) this), island.getSeed(), island.getDragonFight());
+            if (island != null) {
+                this.enderDragonFight = new EnderDragonFight(((ServerWorld) (Object) this), island.getSeed(), island.getDragonFight());
+            } else {
+                this.enderDragonFight = new EnderDragonFight(((ServerWorld) (Object) this), this.getServer().getSaveProperties().getGeneratorOptions().getSeed(), this.getServer().getSaveProperties().getDragonFight());
+            }
 
         }
     }

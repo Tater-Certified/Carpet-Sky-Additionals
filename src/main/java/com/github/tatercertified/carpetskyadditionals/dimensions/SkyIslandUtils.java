@@ -40,12 +40,12 @@ public class SkyIslandUtils {
     }
 
     public static void teleportToIsland(ServerPlayerEntity player, ServerWorld island, GameMode set_gamemode) {
-        player.teleport(island, 8, 64, 9, player.getYaw(), player.getPitch());
+        player.teleport(island, 8.5, 64, 9.5, player.getYaw(), player.getPitch());
         player.changeGameMode(set_gamemode);
     }
 
     public static void offlineTeleportToHub(ServerPlayerEntity player, NbtCompound data) {
-        player.setPosition(8, 64, 9);
+        player.setPosition(8.5, 64, 9.5);
         data.putInt("playerGameType", 0);
         player.setGameMode(data);
         savePlayerData(player);
