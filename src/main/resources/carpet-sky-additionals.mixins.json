@@ -6,7 +6,9 @@
   "mixins": [
     "EndPortalBlockMixin",
     "EntityMixin",
+    "SeedCommandMixin",
     "ServerPlayerEntityMixin",
+    "ServerWorldMixin",
     "SkyIslandCommandInvoker"
   ],
   "client": [

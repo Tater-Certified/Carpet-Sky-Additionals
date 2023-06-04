@@ -1,10 +1,12 @@
 package com.github.tatercertified.carpetskyadditionals.dimensions;
 
-import com.github.tatercertified.carpetskyadditionals.CarpetSkyAdditionals;
 import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
 import com.github.tatercertified.carpetskyadditionals.mixin.SkyIslandCommandInvoker;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
@@ -12,7 +14,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.random.CheckedRandom;
@@ -29,26 +30,33 @@ public class SkyIslandManager {
 
     public static List<SkyIslandWorld> islands = new ArrayList<>();
     public static Fantasy fantasy;
-    public static void loadIslands(MinecraftServer server) {
+    public static void loadIslands(MinecraftServer server, NbtList nbt) {
         fantasy = Fantasy.get(server);
 
-        for (ServerWorld world : server.getWorlds()) {
-            Identifier id = world.getRegistryKey().getValue();
-            if (Objects.equals(id.getNamespace(), CarpetSkyAdditionals.MOD_ID) && world.getDimension() == server.getOverworld().getDimension()) {
-                // TODO not hardcode max_members
-                SkyIslandWorld island = new SkyIslandWorld(id.getPath(), 2, server, fantasy);
+        SkyIslandWorld vanilla = new VanillaWorldOverride("overworld", -1, server, fantasy);
+        islands.add(vanilla);
+
+        if (nbt != null) {
+            for (int i = 0; i < nbt.size(); i++) {
+                NbtCompound compound = nbt.getCompound(i);
+
+                SkyIslandWorld island = new SkyIslandWorld(compound.getString("name"), compound.getInt("max_members"), server, fantasy, compound.getLong("seed"), compound.getCompound("dragon_fight"));
+                island.loadNBT(compound);
                 islands.add(island);
-            } else if (world.getDimension() == server.getOverworld().getDimension()){
-                SkyIslandWorld override = new VanillaWorldOverride(id.getPath(), -1, server, fantasy);
-                islands.add(override);
             }
         }
+        //TODO TESTING
+        System.out.println("TESTING*2*!!!!!!!! " + islands + ";    " + nbt);
     }
 
     public static void createIsland(String name, MinecraftServer server, ServerPlayerEntity creator) {
-        SkyIslandWorld world = new SkyIslandWorld(name, 2, server, fantasy);
+        SkyIslandWorld world = new SkyIslandWorld(name, 2, server, fantasy, null, new NbtCompound());
         islands.add(world);
+        world.setOwner(creator.getName().getString());
         generateIslandStructure(world, server);
+        BlockPos pos = new BlockPos(8, 63, 9);
+        world.getOverworld().setBlockState(pos, Blocks.BEDROCK.getDefaultState());
+        world.getOverworld().setSpawnPos(pos, 0.0F);
         joinIsland(world, creator);
     }
 
@@ -65,8 +73,7 @@ public class SkyIslandManager {
 
     public static void joinIsland(SkyIslandWorld island, ServerPlayerEntity player) {
         if (island.tryAddMember(player)) {
-            // TODO implement this better so that it finds a suitable location to place the player
-            ((PlayerIslandDataInterface)player).setHomeIsland(island);
+            ((PlayerIslandDataInterface)player).addHomeIsland(island);
             SkyIslandUtils.teleportToIsland(player, island.getOverworld(), GameMode.SURVIVAL);
             player.setStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 15), player);
             player.changeGameMode(GameMode.SURVIVAL);
@@ -114,29 +121,29 @@ public class SkyIslandManager {
     }
 
     private static void removeAllPlayersFromIsland(SkyIslandWorld island) {
-        List<ServerPlayerEntity> all = new ArrayList<>();
-        all.addAll(island.getOverworld().getPlayers());
-        all.addAll(island.getNether().getPlayers());
-        all.addAll(island.getEnd().getPlayers());
-
-        MinecraftServer server;
+        List<ServerPlayerEntity> all = island.getMembers();
+        MinecraftServer server = island.getServer();
 
         for (ServerPlayerEntity player : all) {
-            server = player.getServer();
-            if (((PlayerIslandDataInterface)player).getHomeIsland() == island) {
-                ((PlayerIslandDataInterface) player).setHomeIsland(null);
+            if (isOnline(player, island.getServer())) {
+                if (((PlayerIslandDataInterface) player).getHomeIslands().contains(island)) {
+                    ((PlayerIslandDataInterface) player).removeHomeIsland(island);
+                }
+                SkyIslandUtils.teleportToIsland(player, server.getWorld(ServerWorld.OVERWORLD), GameMode.SURVIVAL);
+                server.sendMessage(Text.literal("The Island you were on has been removed"));
+            } else {
+                NbtCompound data = server.getPlayerManager().loadPlayerData(player);
+                assert data != null;
+                SkyIslandUtils.offlineTeleportToHub(player, data);
             }
-            SkyIslandUtils.teleportToIsland(player, server.getWorld(ServerWorld.OVERWORLD), GameMode.SURVIVAL);
-            server.sendMessage(Text.literal("The Island you were on has been removed"));
         }
     }
 
-    public static void teleportHome(ServerPlayerEntity player) {
-        SkyIslandWorld home = ((PlayerIslandDataInterface)player).getHomeIsland();
-        if (home != null) {
-            SkyIslandUtils.teleportToIsland(player, home.getOverworld(), GameMode.SURVIVAL);
-        } else {
-            player.sendMessage(Text.literal("You are not a member of any Island"));
-        }
+    private static boolean isOnline(ServerPlayerEntity player, MinecraftServer server) {
+        return server.getPlayerManager().getPlayerList().contains(player);
+    }
+
+    public static void teleportHub(ServerPlayerEntity player) {
+        SkyIslandUtils.teleportToIsland(player, player.getServer().getOverworld(), GameMode.ADVENTURE);
     }
 }

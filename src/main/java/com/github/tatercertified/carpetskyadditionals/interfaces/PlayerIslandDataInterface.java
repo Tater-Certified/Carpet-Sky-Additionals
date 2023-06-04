@@ -2,8 +2,12 @@ package com.github.tatercertified.carpetskyadditionals.interfaces;
 
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandWorld;
 
-public interface PlayerIslandDataInterface {
-    SkyIslandWorld getHomeIsland();
+import java.util.List;
 
-    void setHomeIsland(SkyIslandWorld island);
+public interface PlayerIslandDataInterface {
+    List<SkyIslandWorld> getHomeIslands();
+
+    void addHomeIsland(SkyIslandWorld island);
+
+    void removeHomeIsland(SkyIslandWorld island);
 }
