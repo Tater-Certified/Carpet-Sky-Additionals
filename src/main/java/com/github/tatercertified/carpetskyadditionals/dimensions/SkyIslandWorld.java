@@ -6,6 +6,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
@@ -48,6 +49,7 @@ public class SkyIslandWorld {
                 .setGenerator(server.getOverworld().getChunkManager().getChunkGenerator());
 
         overworld_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, name), worldConfig);
+        getOverworld().setSpawnPos(new BlockPos(8, 64, 9), 0.0F);
 
         // Nether
 

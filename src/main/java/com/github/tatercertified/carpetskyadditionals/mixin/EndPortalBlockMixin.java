@@ -4,10 +4,13 @@ import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandWorld;
 import com.github.tatercertified.carpetskyadditionals.interfaces.EntityIslandDataInterface;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.EndPortalBlock;
+import net.minecraft.block.RespawnAnchorBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -35,6 +38,7 @@ public class EndPortalBlockMixin {
                 serverWorld = current.getOverworld();
                 if (entity instanceof ServerPlayerEntity) {
                     blockPos = ((ServerPlayerEntity) entity).getSpawnPointPosition();
+                    serverWorld = current.getServer().getWorld(((ServerPlayerEntity) entity).getSpawnPointDimension());
                     if (blockPos == null) {
                         blockPos = current.getOverworld().getSpawnPos();
                     }
@@ -53,6 +57,7 @@ public class EndPortalBlockMixin {
     }
 
     private TeleportTarget getTeleportTarget(Entity entity, BlockPos teleport_pos) {
+
         return new TeleportTarget(new Vec3d((double)teleport_pos.getX() + 0.5, teleport_pos.getY(), (double)teleport_pos.getZ() + 0.5), entity.getVelocity(), entity.getYaw(), entity.getPitch());
     }
 }

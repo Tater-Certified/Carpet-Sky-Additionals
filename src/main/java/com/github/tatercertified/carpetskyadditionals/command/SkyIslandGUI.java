@@ -143,7 +143,8 @@ public class SkyIslandGUI {
                                     case "leave" -> SkyIslandManager.leaveIsland(SkyIslandUtils.getSkyIsland(name), player);
                                     case "visit" -> SkyIslandManager.visitIsland(SkyIslandUtils.getSkyIsland(name), player);
                                     case "teleport" -> SkyIslandUtils.teleportToIsland(player, SkyIslandUtils.getSkyIsland(name).getOverworld(), GameMode.SURVIVAL);
-                                    case "rename" -> openTextEditor(player, gui, SkyIslandUtils.getSkyIsland(name));
+                                    //TODO Find a safe alternative to renaming islands
+                                    //case "rename" -> openTextEditor(player, gui, SkyIslandUtils.getSkyIsland(name));
                                 }
                                 this.close();
                                 if (new_gui != null) {

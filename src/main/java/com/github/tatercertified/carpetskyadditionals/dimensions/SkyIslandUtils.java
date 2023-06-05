@@ -4,12 +4,15 @@ import com.github.tatercertified.carpetskyadditionals.CarpetSkyAdditionals;
 import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.GameMode;
+import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
@@ -28,6 +31,30 @@ public class SkyIslandUtils {
             return getSkyIsland(name);
         } else {
             return getVanillaIsland();
+        }
+    }
+
+    public static RegistryKey<World> getDimensionFromString(String dimension) {
+        switch (dimension) {
+            case "ovewrold" -> {
+                return World.OVERWORLD;
+            }
+            case "the_nether" -> {
+                return World.NETHER;
+            }
+            case "the_end" -> {
+                return World.END;
+            }
+        }
+        String name = dimension.replace("-nether", "").replace("-end", "");
+        SkyIslandWorld island = getSkyIsland(name);
+
+        if (dimension.equals(name)) {
+            return island.getOverworld().getRegistryKey();
+        } else if (dimension.contains("-nether")) {
+            return island.getNether().getRegistryKey();
+        } else {
+            return island.getEnd().getRegistryKey();
         }
     }
 

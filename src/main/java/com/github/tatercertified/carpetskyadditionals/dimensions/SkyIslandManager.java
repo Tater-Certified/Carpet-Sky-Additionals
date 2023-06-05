@@ -68,6 +68,7 @@ public class SkyIslandManager {
         island.remove();
     }
 
+    //TODO Find a safe alternative to renaming islands
     public static void renameIsland(SkyIslandWorld island, String new_name) {
         String old_name = island.getName();
         Map<String, SkyIslandWorld> allIslands = SkyIslandUtils.getAllIslands();
