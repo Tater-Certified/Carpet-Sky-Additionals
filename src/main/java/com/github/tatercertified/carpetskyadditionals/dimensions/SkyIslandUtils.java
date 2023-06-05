@@ -21,11 +21,18 @@ import java.util.Objects;
 public class SkyIslandUtils {
 
     public static SkyIslandWorld getSkyIsland(String name) {
-        for (SkyIslandWorld island : SkyIslandManager.islands) {
-            if (Objects.equals(island.getName(), name)) {
+        //TODO TESTING
+        System.out.println("*******TESTING******* " + name);
+        for (SkyIslandWorld island : getAllIslands()) {
+            String island_name = island.getName();
+            if (Objects.equals(island_name, name)) {
+                //TODO TESTING
+                System.out.println("*******TESTING******* : SUCCESS");
                 return island;
             }
         }
+        //TODO TESTING
+        System.out.println("*******TESTING******* : FAILURE");
         return null;
     }
 
@@ -86,7 +93,7 @@ public class SkyIslandUtils {
 
     public static List<SkyIslandWorld> getAllUsersIslands(ServerPlayerEntity user) {
         //TODO Add verification
-        return ((PlayerIslandDataInterface)user).getHomeIslands();
+        return ((PlayerIslandDataInterface) user).getHomeIslands();
     }
 
     public static List<SkyIslandWorld> getAllNotUsersIslands(ServerPlayerEntity user) {

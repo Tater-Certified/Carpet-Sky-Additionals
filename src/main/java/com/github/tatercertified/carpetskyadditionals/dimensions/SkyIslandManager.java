@@ -22,7 +22,6 @@ import xyz.nucleoid.fantasy.Fantasy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class SkyIslandManager {
 
@@ -43,14 +42,12 @@ public class SkyIslandManager {
                 islands.add(island);
             }
         }
-        //TODO TESTING
-        System.out.println("TESTING*2*!!!!!!!! " + islands + ";    " + nbt);
     }
 
     public static void createIsland(String name, MinecraftServer server, ServerPlayerEntity creator) {
-        SkyIslandWorld world = new SkyIslandWorld(name, 2, server, fantasy, null, new NbtCompound());
-        islands.add(world);
+        SkyIslandWorld world = new SkyIslandWorld(name, 2, server, fantasy, server.getOverworld().getRandom().nextLong(), new NbtCompound());
         world.setOwner(creator.getName().getString());
+        addIsland(world);
         generateIslandStructure(world, server);
         BlockPos pos = new BlockPos(8, 63, 9);
         world.getOverworld().setBlockState(pos, Blocks.BEDROCK.getDefaultState());
@@ -58,15 +55,31 @@ public class SkyIslandManager {
         joinIsland(world, creator);
     }
 
-    public static void removeIsland(String name) {
-        for (SkyIslandWorld island : islands) {
-            if (Objects.equals(island.getName(), name)) {
-                removeAllPlayersFromIsland(island);
-                island.remove();
-                islands.remove(island);
-                return;
-            }
+    private static void addIsland(SkyIslandWorld island) {
+        islands.add(island);
+        saveIslands(island.getServer());
+    }
+
+    public static void removeIsland(SkyIslandWorld island) {
+        removeAllPlayersFromIsland(island);
+        islands.remove(island);
+        saveIslands(island.getServer());
+        island.remove();
+    }
+
+    public static void renameIsland(SkyIslandWorld island, String new_name) {
+        island.setName(new_name);
+        saveIslands(island.getServer());
+    }
+
+    private static void saveIslands(MinecraftServer server) {
+        IslandPersistentState state = IslandPersistentState.getServerState(server);
+        NbtList list = new NbtList();
+        for (SkyIslandWorld island : SkyIslandUtils.getAllIslandsWithoutVanilla()) {
+            list.add(island.getNBT());
         }
+        state.islands = list;
+        state.markDirty();
     }
 
     public static void joinIsland(SkyIslandWorld island, ServerPlayerEntity player) {
@@ -81,8 +94,13 @@ public class SkyIslandManager {
 
     public static void leaveIsland(SkyIslandWorld island, ServerPlayerEntity player) {
         island.removeMember(player);
+        ((PlayerIslandDataInterface)player).removeHomeIsland(island);
         SkyIslandUtils.teleportToIsland(player, player.getServer().getWorld(ServerWorld.OVERWORLD), GameMode.SURVIVAL);
         player.sendMessage(Text.literal("You have been removed from this Island"));
+
+        if (island.getMembers().isEmpty()) {
+            removeIsland(island);
+        }
     }
 
     public static void visitIsland(SkyIslandWorld island, ServerPlayerEntity player) {
@@ -102,21 +120,6 @@ public class SkyIslandManager {
         skyIslandFeature.generate(overworld, overworld.getChunkManager().getChunkGenerator(), random, new BlockPos(x, 0, z));
     }
 
-    public static String listIslands() {
-        List<String> strings = new ArrayList<>();
-        for (SkyIslandWorld world : islands) {
-            if (Objects.equals(world.getName(), "overworld")) {
-                continue;
-            }
-            strings.add(world.getName());
-        }
-        return String.join(", ", strings);
-    }
-
-    private static boolean isOnIsland(SkyIslandWorld island, ServerPlayerEntity player) {
-        return player.getWorld() == island.getOverworld() || player.getWorld() == island.getNether() || player.getWorld() == island.getEnd();
-    }
-
     private static void removeAllPlayersFromIsland(SkyIslandWorld island) {
         List<ServerPlayerEntity> all = island.getMembers();
         MinecraftServer server = island.getServer();
@@ -126,8 +129,10 @@ public class SkyIslandManager {
                 if (((PlayerIslandDataInterface) player).getHomeIslands().contains(island)) {
                     ((PlayerIslandDataInterface) player).removeHomeIsland(island);
                 }
-                SkyIslandUtils.teleportToIsland(player, server.getWorld(ServerWorld.OVERWORLD), GameMode.SURVIVAL);
-                server.sendMessage(Text.literal("The Island you were on has been removed"));
+                if (isOnIsland(player, island)) {
+                    SkyIslandUtils.teleportToIsland(player, server.getWorld(ServerWorld.OVERWORLD), GameMode.SURVIVAL);
+                }
+                player.sendMessage(Text.literal(island.getName() + " has been removed!"));
             } else {
                 NbtCompound data = server.getPlayerManager().loadPlayerData(player);
                 assert data != null;
@@ -142,5 +147,10 @@ public class SkyIslandManager {
 
     public static void teleportHub(ServerPlayerEntity player) {
         SkyIslandUtils.teleportToIsland(player, player.getServer().getOverworld(), GameMode.ADVENTURE);
+    }
+
+    private static boolean isOnIsland(ServerPlayerEntity player, SkyIslandWorld island) {
+        ServerWorld world = player.getWorld();
+        return world == island.getOverworld() || world == island.getNether() || world == island.getEnd();
     }
 }

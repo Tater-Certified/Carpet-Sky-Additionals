@@ -35,7 +35,7 @@ public class SkyIslandGUI {
 
         gui.setSlot(0, new GuiElementBuilder().setItem(Items.GRASS_BLOCK).setName(Text.literal("Create An Island")).setCallback(clickType -> {
             gui.close();
-            openTextEditor(player, null, true);
+            openTextEditor(player, null, null);
         }));
 
         gui.setSlot(1, new GuiElementBuilder().setItem(Items.BARRIER).setName(Text.literal("Delete An Island")).setCallback(clickType -> {
@@ -45,7 +45,7 @@ public class SkyIslandGUI {
 
         gui.setSlot(2, new GuiElementBuilder().setItem(Items.ANVIL).setName(Text.literal("Rename An Island")).setCallback(clickType -> {
             gui.close();
-            openTextEditor(player, gui, false);
+            openPagedList(player, null, SkyIslandUtils.getAllOwnersIslands(player), "rename");
         }));
         //TODO Manage Islands
         gui.setSlot(3, new GuiElementBuilder().setItem(Items.LIGHT).setName(Text.literal("Manage Your Islands")).setCallback(clickType -> {
@@ -78,7 +78,7 @@ public class SkyIslandGUI {
         gui.open();
     }
 
-    private void openTextEditor(ServerPlayerEntity player, SimpleGui new_gui, boolean creation) {
+    private void openTextEditor(ServerPlayerEntity player, SimpleGui new_gui, SkyIslandWorld world) {
         final String[] output = new String[1];
         SignGui editor = new SignGui(player) {
             @Override
@@ -86,14 +86,15 @@ public class SkyIslandGUI {
                 super.onClose();
                 output[0] = this.getLine(0).getString() + this.getLine(1).getString() + this.getLine(2).getString() + this.getLine(3).getString();
                 if (!output[0].equals("")) {
-                    if (creation) {
-                        if (!checkIfIslandNameIsAvailable(output[0])) {
-                            player.sendMessage(Text.literal("That name is already taken, try another name"));
-                        } else {
+                    if (checkIfIslandNameIsAvailable(output[0])) {
+                        if (world == null) {
                             SkyIslandManager.createIsland(output[0], player.getServer(), player);
+                        } else {
+                            SkyIslandManager.renameIsland(world, output[0]);
                         }
                     } else {
-                        //TODO Rename code
+                        player.sendMessage(Text.literal("That name is already taken, try another name"));
+                        gui.open();
                     }
                 } else {
                     gui.open();
@@ -128,6 +129,9 @@ public class SkyIslandGUI {
                     gui1 = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, true) {
                         @Override
                         public boolean onClick(int index, ClickType type, SlotActionType action, GuiElementInterface element) {
+                            if (element == null) {
+                                return super.onClick(index, type, action, null);
+                            }
                             String name = element.getItemStack().getName().getString();
                             if (Objects.equals(name, "Next")) {
                                 SimpleGui next = gui_pages.get(gui_pages.indexOf(this) + 1);
@@ -142,11 +146,12 @@ public class SkyIslandGUI {
                                 gui.open();
                             } else if (element.getItemStack().getItem() == Items.GRASS_BLOCK) {
                                 switch (click_function) {
-                                    case "delete" -> SkyIslandManager.removeIsland(name);
+                                    case "delete" -> SkyIslandManager.removeIsland(SkyIslandUtils.getSkyIsland(name));
                                     case "join" -> SkyIslandManager.joinIsland(SkyIslandUtils.getSkyIsland(name), player);
                                     case "leave" -> SkyIslandManager.leaveIsland(SkyIslandUtils.getSkyIsland(name), player);
                                     case "visit" -> SkyIslandManager.visitIsland(SkyIslandUtils.getSkyIsland(name), player);
                                     case "teleport" -> SkyIslandUtils.teleportToIsland(player, SkyIslandUtils.getSkyIsland(name).getOverworld(), GameMode.SURVIVAL);
+                                    case "rename" -> openTextEditor(player, gui, SkyIslandUtils.getSkyIsland(name));
                                 }
                                 this.close();
                                 if (new_gui != null) {
@@ -168,6 +173,9 @@ public class SkyIslandGUI {
             gui1 = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, true) {
                 @Override
                 public boolean onClick(int index, ClickType type, SlotActionType action, GuiElementInterface element) {
+                    if (element == null) {
+                        return super.onClick(index, type, action, null);
+                    }
                     String name = element.getItemStack().getName().getString();
                     if (Objects.equals(name, "Exit")) {
                         this.close();
@@ -193,7 +201,10 @@ public class SkyIslandGUI {
         }
         gui.setSlot(49, new GuiElementBuilder().setItem(Items.BARRIER).setName(Text.literal("Exit")));
         for (int i = 45; i < 54; i++) {
-            if (!first || !last) {
+            if (!first && i == 45) {
+                continue;
+            }
+            if (!last && i == 53) {
                 continue;
             }
             if (i == 49) {

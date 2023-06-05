@@ -74,9 +74,9 @@ public abstract class EntityMixin implements EntityIslandDataInterface {
     public void tickPortal() {
         if (this.world instanceof ServerWorld serverWorld) {
             int i = this.getMaxNetherPortalTime();
-            SkyIslandWorld current = getCurrentIsland();
 
             if (this.inNetherPortal) {
+                SkyIslandWorld current = getCurrentIsland();
                 MinecraftServer minecraftServer = serverWorld.getServer();
                 ServerWorld serverWorld2;
                 if (serverWorld == current.getOverworld()) {

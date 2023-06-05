@@ -19,7 +19,7 @@ import java.util.List;
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterface {
 
-    private final List<SkyIslandWorld> homes = new ArrayList<>();
+    private List<SkyIslandWorld> homes = new ArrayList<>();
 
     @Inject(method = "readCustomDataFromNbt", at = @At("HEAD"))
     public void readNBT(NbtCompound nbt, CallbackInfo ci) {
@@ -56,5 +56,10 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
     @Override
     public void removeHomeIsland(SkyIslandWorld island) {
         homes.remove(island);
+    }
+
+    @Override
+    public void setHomeIslands(List<SkyIslandWorld> islands) {
+        homes = islands;
     }
 }

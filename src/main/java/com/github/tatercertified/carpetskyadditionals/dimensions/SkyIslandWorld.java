@@ -27,19 +27,15 @@ public class SkyIslandWorld {
     private RuntimeWorldHandle end_handle;
     private List<UUID> members = new ArrayList<>();
     private final MinecraftServer server;
-    private long seed;
+    private final long seed;
     private NbtCompound dragon_fight;
 
-    public SkyIslandWorld(String name, int max_members, MinecraftServer server, Fantasy fantasy, Long seed, NbtCompound dragon_fight) {
+    public SkyIslandWorld(String name, int max_members, MinecraftServer server, Fantasy fantasy, long seed, NbtCompound dragon_fight) {
         this.name = name;
         this.max_members = max_members;
         this.server = server;
         this.dragon_fight = dragon_fight;
-        if (seed == null) {
-            seed = server.getOverworld().getRandom().nextLong();
-        } else {
-            this.seed = seed;
-        }
+        this.seed = seed;
         createAllWorlds(server, fantasy);
     }
     public void createAllWorlds(MinecraftServer server, Fantasy fantasy) {

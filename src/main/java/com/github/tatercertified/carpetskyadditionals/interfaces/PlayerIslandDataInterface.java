@@ -10,4 +10,6 @@ public interface PlayerIslandDataInterface {
     void addHomeIsland(SkyIslandWorld island);
 
     void removeHomeIsland(SkyIslandWorld island);
+
+    void setHomeIslands(List<SkyIslandWorld> islands);
 }
