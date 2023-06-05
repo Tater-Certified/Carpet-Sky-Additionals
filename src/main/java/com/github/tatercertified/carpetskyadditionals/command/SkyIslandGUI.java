@@ -17,6 +17,7 @@ import net.minecraft.world.GameMode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class SkyIslandGUI {
@@ -86,7 +87,7 @@ public class SkyIslandGUI {
                 super.onClose();
                 output[0] = this.getLine(0).getString() + this.getLine(1).getString() + this.getLine(2).getString() + this.getLine(3).getString();
                 if (!output[0].equals("")) {
-                    if (checkIfIslandNameIsAvailable(output[0])) {
+                    if (SkyIslandUtils.islandAvailable(output[0])) {
                         if (world == null) {
                             SkyIslandManager.createIsland(output[0], player.getServer(), player);
                         } else {
@@ -107,16 +108,7 @@ public class SkyIslandGUI {
         editor.open();
     }
 
-    private boolean checkIfIslandNameIsAvailable(String name) {
-        for (SkyIslandWorld island : SkyIslandUtils.getAllIslands()) {
-            if (Objects.equals(island.getName(), name)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void openPagedList(ServerPlayerEntity player, SimpleGui new_gui, List<SkyIslandWorld> islands, String click_function) {
+    private void openPagedList(ServerPlayerEntity player, SimpleGui new_gui, Map<String, SkyIslandWorld> islands, String click_function) {
         int maxListSize = 45;
         List<SimpleGui> gui_pages = new ArrayList<>();
 
@@ -124,7 +116,7 @@ public class SkyIslandGUI {
         int count = 0;
 
         if (!islands.isEmpty()) {
-            for (SkyIslandWorld island : islands) {
+            for (SkyIslandWorld island : islands.values()) {
                 if (count % maxListSize == 0) {
                     gui1 = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, true) {
                         @Override

@@ -20,18 +20,19 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import xyz.nucleoid.fantasy.Fantasy;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SkyIslandManager {
 
-    public static List<SkyIslandWorld> islands = new ArrayList<>();
+    public static Map<String, SkyIslandWorld> islands = new HashMap<>();
     public static Fantasy fantasy;
     public static void loadIslands(MinecraftServer server, NbtList nbt) {
         fantasy = Fantasy.get(server);
 
         SkyIslandWorld vanilla = new VanillaWorldOverride("overworld", -1, server, fantasy, server.getOverworld().getSeed(), new NbtCompound());
-        islands.add(vanilla);
+        islands.put("overworld", vanilla);
 
         if (nbt != null) {
             for (int i = 0; i < nbt.size(); i++) {
@@ -39,7 +40,7 @@ public class SkyIslandManager {
 
                 SkyIslandWorld island = new SkyIslandWorld(compound.getString("name"), compound.getInt("max_members"), server, fantasy, compound.getLong("seed"), compound.getCompound("dragon_fight"));
                 island.loadNBT(compound);
-                islands.add(island);
+                islands.put(island.getName(), island);
             }
         }
     }
@@ -56,26 +57,30 @@ public class SkyIslandManager {
     }
 
     private static void addIsland(SkyIslandWorld island) {
-        islands.add(island);
+        islands.put(island.getName(), island);
         saveIslands(island.getServer());
     }
 
     public static void removeIsland(SkyIslandWorld island) {
         removeAllPlayersFromIsland(island);
-        islands.remove(island);
+        islands.remove(island.getName());
         saveIslands(island.getServer());
         island.remove();
     }
 
     public static void renameIsland(SkyIslandWorld island, String new_name) {
+        String old_name = island.getName();
+        Map<String, SkyIslandWorld> allIslands = SkyIslandUtils.getAllIslands();
+        allIslands.remove(old_name);
         island.setName(new_name);
+        allIslands.put(new_name, island);
         saveIslands(island.getServer());
     }
 
     private static void saveIslands(MinecraftServer server) {
         IslandPersistentState state = IslandPersistentState.getServerState(server);
         NbtList list = new NbtList();
-        for (SkyIslandWorld island : SkyIslandUtils.getAllIslandsWithoutVanilla()) {
+        for (SkyIslandWorld island : SkyIslandUtils.getAllIslandsWithoutVanilla().values()) {
             list.add(island.getNBT());
         }
         state.islands = list;

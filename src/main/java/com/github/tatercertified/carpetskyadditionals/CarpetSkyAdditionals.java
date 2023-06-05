@@ -13,8 +13,6 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.nbt.NbtList;
 
-import java.util.List;
-
 public class CarpetSkyAdditionals implements CarpetExtension, ModInitializer {
 
     public static final String MOD_ID = "carpet_sky_additionals";
@@ -35,10 +33,9 @@ public class CarpetSkyAdditionals implements CarpetExtension, ModInitializer {
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            List<SkyIslandWorld> islands = SkyIslandUtils.getAllIslandsWithoutVanilla();
             NbtList nbt_list = new NbtList();
 
-            for (SkyIslandWorld island : islands) {
+            for (SkyIslandWorld island : SkyIslandUtils.getAllIslandsWithoutVanilla().values()) {
                 nbt_list.add(island.getNBT());
             }
 
