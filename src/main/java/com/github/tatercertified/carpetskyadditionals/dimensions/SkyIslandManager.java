@@ -47,13 +47,14 @@ public class SkyIslandManager {
 
     public static void createIsland(String name, MinecraftServer server, ServerPlayerEntity creator) {
         SkyIslandWorld world = new SkyIslandWorld(name, 2, server, fantasy, server.getOverworld().getRandom().nextLong(), new NbtCompound());
-        world.setOwner(creator.getName().getString());
+        world.setOwner(creator.getUuid());
+        world.setOwnerName(creator.getName().getString());
         addIsland(world);
         generateIslandStructure(world, server);
         BlockPos pos = new BlockPos(8, 63, 9);
         world.getOverworld().setBlockState(pos, Blocks.BEDROCK.getDefaultState());
         world.getOverworld().setSpawnPos(pos, 0.0F);
-        joinIsland(world, creator);
+        joinIsland(world, creator, true);
     }
 
     private static void addIsland(SkyIslandWorld island) {
@@ -88,11 +89,11 @@ public class SkyIslandManager {
         state.markDirty();
     }
 
-    public static void joinIsland(SkyIslandWorld island, ServerPlayerEntity player) {
-        if (island.tryAddMember(player)) {
-            ((PlayerIslandDataInterface)player).addHomeIsland(island);
-            SkyIslandUtils.teleportToIsland(player, island.getOverworld(), GameMode.SURVIVAL);
-            player.changeGameMode(GameMode.SURVIVAL);
+    public static void joinIsland(SkyIslandWorld island, ServerPlayerEntity player, boolean creation) {
+        if (island.tryAddMember(player, creation)) {
+            if (!creation) {
+                player.sendMessage(Text.literal("Request sent"));
+            }
         } else {
             player.sendMessage(Text.literal("This Island has reached the max number of members: " + island.getMaxMembers()));
         }
@@ -147,7 +148,7 @@ public class SkyIslandManager {
         }
     }
 
-    private static boolean isOnline(ServerPlayerEntity player, MinecraftServer server) {
+    public static boolean isOnline(ServerPlayerEntity player, MinecraftServer server) {
         return server.getPlayerManager().getPlayerList().contains(player);
     }
 

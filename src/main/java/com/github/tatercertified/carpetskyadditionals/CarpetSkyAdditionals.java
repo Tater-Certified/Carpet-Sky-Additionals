@@ -2,6 +2,7 @@ package com.github.tatercertified.carpetskyadditionals;
 
 import carpet.CarpetExtension;
 import carpet.CarpetServer;
+import com.github.tatercertified.carpetskyadditionals.command.CSAAdminCommand;
 import com.github.tatercertified.carpetskyadditionals.command.CSACommand;
 import com.github.tatercertified.carpetskyadditionals.dimensions.IslandPersistentState;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandManager;
@@ -24,6 +25,7 @@ public class CarpetSkyAdditionals implements CarpetExtension, ModInitializer {
     @Override
     public void onInitialize() {
         CSACommand.register();
+        CSAAdminCommand.registerAdminCommand();
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 

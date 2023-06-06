@@ -1,13 +1,16 @@
 package com.github.tatercertified.carpetskyadditionals.dimensions;
 
 import com.github.tatercertified.carpetskyadditionals.CarpetSkyAdditionals;
+import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
 import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
 import xyz.nucleoid.fantasy.Fantasy;
@@ -22,11 +25,13 @@ import java.util.UUID;
 public class SkyIslandWorld {
     private String name;
     private int max_members;
-    private String owner;
+    private UUID owner;
+    private String owner_name;
     private RuntimeWorldHandle overworld_handle;
     private RuntimeWorldHandle nether_handle;
     private RuntimeWorldHandle end_handle;
     private List<UUID> members = new ArrayList<>();
+    private final List<UUID> invite_requests = new ArrayList<>();
     private final MinecraftServer server;
     private final long seed;
     private NbtCompound dragon_fight;
@@ -96,11 +101,19 @@ public class SkyIslandWorld {
         this.name = name;
     }
 
-    public String getOwner() {
+    public UUID getOwner() {
         return owner;
     }
 
-    public void setOwner(String owner) {
+    public String getOwnerName() {
+        return owner_name;
+    }
+
+    public void setOwnerName(String name) {
+        this.owner_name = name;
+    }
+
+    public void setOwner(UUID owner) {
         this.owner = owner;
     }
 
@@ -128,9 +141,13 @@ public class SkyIslandWorld {
         this.dragon_fight = data;
     }
 
-    public boolean tryAddMember(ServerPlayerEntity player) {
+    public boolean tryAddMember(ServerPlayerEntity player, boolean creation) {
         if (members.size() < max_members) {
-            members.add(player.getUuid());
+            if (creation) {
+                acceptJoinRequest(player.getUuid());
+            } else {
+                addJoinRequest(player);
+            }
             return true;
         }
         return false;
@@ -156,6 +173,47 @@ public class SkyIslandWorld {
         return list;
     }
 
+    public void addJoinRequest(ServerPlayerEntity requester) {
+        UUID id = requester.getUuid();
+        if (this.invite_requests.contains(id)){
+            requester.sendMessage(Text.literal("You have already requested to join this server!"));
+        } else {
+            this.invite_requests.add(requester.getUuid());
+            if (SkyIslandManager.isOnline(server.getPlayerManager().getPlayer(getOwner()), server)) {
+                ServerPlayerEntity owner = server.getPlayerManager().getPlayer(getOwner());
+                owner.sendMessage(Text.literal(requester.getName() + " has requested to join " + getName()));
+            }
+        }
+    }
+
+    public void rejectJoinRequest(UUID request) {
+        this.invite_requests.remove(request);
+    }
+
+    public void acceptJoinRequest(UUID request) {
+        this.invite_requests.remove(request);
+        this.members.add(request);
+
+        ServerPlayerEntity requester = server.getPlayerManager().getPlayer(request);
+        if (SkyIslandManager.isOnline(server.getPlayerManager().getPlayer(request), server)) {
+            ((PlayerIslandDataInterface)requester).addHomeIsland(this);
+            SkyIslandUtils.teleportToIsland(requester, this.getOverworld(), GameMode.SURVIVAL);
+            requester.changeGameMode(GameMode.SURVIVAL);
+            requester.sendMessage(Text.literal("Welcome to " + this.getName()));
+        } else {
+            NbtCompound data = server.getPlayerManager().loadPlayerData(requester);
+            assert data != null;
+            NbtList home_islands = data.getList("home-islands", NbtElement.STRING_TYPE);
+            home_islands.add(NbtString.of(this.getName()));
+            SkyIslandUtils.savePlayerData(requester);
+        }
+
+    }
+
+    public List<UUID> getRequests() {
+        return invite_requests;
+    }
+
     public void remove() {
         overworld_handle.delete();
         nether_handle.delete();
@@ -165,7 +223,8 @@ public class SkyIslandWorld {
     public NbtCompound getNBT() {
         NbtCompound compound = new NbtCompound();
         NbtInt max_members = NbtInt.of(getMaxMembers());
-        NbtString owner = NbtString.of(getOwner());
+        NbtString owner = NbtString.of(getOwner().toString());
+        NbtString owner_name = NbtString.of(getOwnerName());
         NbtString name = NbtString.of(getName());
         NbtLong seed = NbtLong.of(getSeed());
         NbtList members_nbt = new NbtList();
@@ -179,6 +238,7 @@ public class SkyIslandWorld {
         compound.put("seed", seed);
         compound.put("max_members", max_members);
         compound.put("owner", owner);
+        compound.put("owner-name", owner_name);
         compound.put("members", members_nbt);
         dragon_fight = getEnd().getEnderDragonFight().toNbt();
         compound.put("dragon_fight", dragon_fight);
@@ -187,7 +247,8 @@ public class SkyIslandWorld {
     }
 
     public void loadNBT(NbtCompound compound) {
-        setOwner(compound.getString("owner"));
+        setOwner(UUID.fromString(compound.getString("owner")));
+        setOwnerName(compound.getString("owner-name"));
 
         List<UUID> players = new ArrayList<>();
         NbtList member_list = compound.getList("members", NbtElement.STRING_TYPE);

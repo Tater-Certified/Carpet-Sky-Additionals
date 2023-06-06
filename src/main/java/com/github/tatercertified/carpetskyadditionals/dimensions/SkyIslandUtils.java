@@ -113,7 +113,7 @@ public class SkyIslandUtils {
     public static Map<String, SkyIslandWorld> getAllOwnersIslands(ServerPlayerEntity owner) {
         List<SkyIslandWorld> owned = new ArrayList<>();
         for (SkyIslandWorld island : getAllUsersIslands(owner).values()) {
-            if (Objects.equals(island.getOwner(), owner.getName().getString())) {
+            if (Objects.equals(island.getOwner(), owner.getUuid())) {
                 owned.add(island);
             }
         }
