@@ -1,6 +1,8 @@
 package com.github.tatercertified.carpetskyadditionals.interfaces;
 
+import com.github.tatercertified.carpetskyadditionals.dimensions.PlayerSkyIslandWorld;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandWorld;
+import net.minecraft.server.world.ServerWorld;
 
 import java.util.List;
 
@@ -11,5 +13,9 @@ public interface PlayerIslandDataInterface {
 
     void removeHomeIsland(SkyIslandWorld island);
 
-    void setHomeIslands(List<SkyIslandWorld> islands);
+    List<PlayerSkyIslandWorld> getPlayerIslands();
+
+    void setPlayerIslands(List<PlayerSkyIslandWorld> islands);
+
+    PlayerSkyIslandWorld getPIsland(ServerWorld world);
 }

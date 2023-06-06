@@ -13,6 +13,7 @@ import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -81,6 +82,9 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
     public RegistryKey<World> getSpawnPointDimension() {
         SkyIslandWorld current = ((EntityIslandDataInterface)(Object)this).getCurrentIsland();
         PlayerSkyIslandWorld p_island = getPIsland(current);
+        if (p_island == null) {
+            return World.OVERWORLD;
+        }
         return p_island.getSpawnDimension();
     }
 
@@ -92,6 +96,9 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
     public @Nullable BlockPos getSpawnPointPosition() {
         SkyIslandWorld current = ((EntityIslandDataInterface)(Object)this).getCurrentIsland();
         PlayerSkyIslandWorld p_island = getPIsland(current);
+        if (p_island == null) {
+            return null;
+        }
         Optional<Vec3d> optional = PlayerEntity.findRespawnPosition(current.getServer().getWorld(p_island.getSpawnDimension()), p_island.getSpawnPos(), this.spawnAngle, this.spawnForced, true);
         BlockPos pos;
         pos = optional.map(vec3d -> new BlockPos(Math.toIntExact(Math.round(vec3d.x)), Math.toIntExact(Math.round(vec3d.y)), Math.toIntExact(Math.round(vec3d.z)))).orElseGet(p_island::getSpawnPos);
@@ -106,6 +113,11 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
     public void setSpawnPoint(RegistryKey<World> dimension, @Nullable BlockPos pos, float angle, boolean forced, boolean sendMessage) {
         SkyIslandWorld current = ((EntityIslandDataInterface)(Object)this).getCurrentIsland();
         PlayerSkyIslandWorld p_island = getPIsland(current);
+
+        if (p_island == null) {
+            this.sendMessage(Text.literal("You cannot set your spawn on this Island!"));
+            return;
+        }
 
         if (pos != null) {
 
@@ -128,6 +140,12 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
     }
 
     @Override
+    public PlayerSkyIslandWorld getPIsland(ServerWorld world) {
+        SkyIslandWorld island = SkyIslandUtils.getSkyIsland(world);
+        return getPIsland(island);
+    }
+
+    @Override
     public List<SkyIslandWorld> getHomeIslands() {
         List<SkyIslandWorld> islands = new ArrayList<>();
         for (PlayerSkyIslandWorld p_island : homes) {
@@ -147,8 +165,13 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
     }
 
     @Override
-    public void setHomeIslands(List<SkyIslandWorld> islands) {
-        homes = convertIslands(islands);
+    public List<PlayerSkyIslandWorld> getPlayerIslands() {
+        return homes;
+    }
+
+    @Override
+    public void setPlayerIslands(List<PlayerSkyIslandWorld> islands) {
+        this.homes = islands;
     }
 
     private PlayerSkyIslandWorld getPIsland(SkyIslandWorld island) {
@@ -158,13 +181,5 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
             }
         }
         return null;
-    }
-
-    private List<PlayerSkyIslandWorld> convertIslands(List<SkyIslandWorld> list) {
-        List<PlayerSkyIslandWorld> p_list = new ArrayList<>();
-        for (SkyIslandWorld island : list) {
-            p_list.add(new PlayerSkyIslandWorld(island));
-        }
-        return p_list;
     }
 }

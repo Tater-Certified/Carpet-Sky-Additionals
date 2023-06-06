@@ -44,7 +44,7 @@ public class CarpetSkyAdditionals implements CarpetExtension, ModInitializer {
             state.markDirty();
         });
 
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ((PlayerIslandDataInterface)newPlayer).setHomeIslands(((PlayerIslandDataInterface)oldPlayer).getHomeIslands()));
+        ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> ((PlayerIslandDataInterface)newPlayer).setPlayerIslands(((PlayerIslandDataInterface)oldPlayer).getPlayerIslands()));
     }
 
 }

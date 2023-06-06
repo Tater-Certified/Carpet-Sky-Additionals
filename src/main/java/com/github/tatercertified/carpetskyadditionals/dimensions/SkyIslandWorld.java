@@ -46,6 +46,7 @@ public class SkyIslandWorld {
                 .setDimensionType(DimensionTypes.OVERWORLD)
                 .setDifficulty(Difficulty.HARD)
                 .setSeed(seed)
+                .setShouldTickTime(true)
                 .setGenerator(server.getOverworld().getChunkManager().getChunkGenerator());
 
         overworld_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, name), worldConfig);
@@ -57,6 +58,7 @@ public class SkyIslandWorld {
                 .setDimensionType(DimensionTypes.THE_NETHER)
                 .setDifficulty(Difficulty.HARD)
                 .setSeed(seed)
+                .setShouldTickTime(true)
                 .setGenerator(Objects.requireNonNull(server.getWorld(World.NETHER)).getChunkManager().getChunkGenerator());
 
         nether_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, name + "-nether"), worldConfig1);
@@ -67,6 +69,7 @@ public class SkyIslandWorld {
                 .setDimensionType(DimensionTypes.THE_END)
                 .setDifficulty(Difficulty.HARD)
                 .setSeed(seed)
+                .setShouldTickTime(true)
                 .setGenerator(server.getWorld(World.END).getChunkManager().getChunkGenerator());
 
         end_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, name + "-end"), worldConfig2);
