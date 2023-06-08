@@ -21,6 +21,8 @@ public class IslandListGUI extends PagedGUI{
     public IslandListGUI(ServerPlayerEntity user, SimpleGui parent_gui, Map<String, ?> map, int item_amount, String action_type) {
         super(user, parent_gui, map, item_amount, action_type);
         current = ((EntityIslandDataInterface)user).getCurrentIsland();
+        // Inserted Ampflower assistance here
+        init();
     }
 
     @Override
@@ -39,16 +41,17 @@ public class IslandListGUI extends PagedGUI{
         }
         String name = element.getItemStack().getName().getString();
         if (element.getItemStack().getItem() == Items.GRASS_BLOCK || element.getItemStack().getItem() == Items.GLOWSTONE) {
-            System.out.println("TESTING - " + name);
             SkyIslandWorld island = SkyIslandUtils.getSkyIsland(name);
-            System.out.println("TESTING2 - " + island);
             switch (actions) {
                 case "delete" -> SkyIslandManager.removeIsland(island);
                 case "join" -> SkyIslandManager.joinIsland(island, user, false);
                 case "leave" -> SkyIslandManager.leaveIsland(island, user);
                 case "visit" -> SkyIslandManager.visitIsland(island, user);
                 case "teleport" -> SkyIslandUtils.teleportToIsland(user, island.getOverworld(), GameMode.SURVIVAL);
-                case "manage" -> new IslandManagementGUI(user, parent_gui, island.getMembers(), 45, null, island);
+                case "manage" -> {
+                    new IslandManagementGUI(user, parent_gui, island.getMembers(), 45, null, island);
+                    parent_gui = null;
+                }
                 case "admin" -> new AdminGUI(user, island);
                 //TODO Find a safe alternative to renaming islands
                 //case "rename" -> openTextEditor(player, gui, SkyIslandUtils.getSkyIsland(name));
@@ -58,5 +61,10 @@ public class IslandListGUI extends PagedGUI{
                 parent_gui.open();
             }
         }
+    }
+
+    @Override
+    public String setGUITitle() {
+        return "Islands";
     }
 }

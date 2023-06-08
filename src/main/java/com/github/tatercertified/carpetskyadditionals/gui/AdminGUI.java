@@ -32,6 +32,7 @@ public class AdminGUI {
                 return super.onClick(index, type, action, element);
             }
         };
+        gui.setTitle(Text.literal("Admin Panel"));
 
         gui.setSlot(0, new ItemStack(Items.GRAY_STAINED_GLASS_PANE));
         gui.setSlot(1, new GuiElementBuilder().setItem(Items.BARRIER).setName(Text.literal("Delete Island")));

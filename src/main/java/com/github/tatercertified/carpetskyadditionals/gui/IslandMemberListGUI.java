@@ -16,6 +16,8 @@ public class IslandMemberListGUI extends PagedGUI{
         super(user, parent_gui, map, item_amount, action_type);
         this.island = island;
         this.click_function = action_type;
+        // Inserted Ampflower assistance here
+        init();
     }
 
     @Override
@@ -34,5 +36,10 @@ public class IslandMemberListGUI extends PagedGUI{
                         }
                     }
                 }));
+    }
+
+    @Override
+    public String setGUITitle() {
+        return "Manage Members";
     }
 }

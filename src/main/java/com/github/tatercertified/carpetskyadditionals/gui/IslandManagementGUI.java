@@ -19,6 +19,8 @@ public class IslandManagementGUI extends PagedGUI{
     public IslandManagementGUI(ServerPlayerEntity user, SimpleGui parent_gui, Map<String, ?> map, int item_amount, String action_type, SkyIslandWorld island) {
         super(user, parent_gui, map, item_amount, action_type);
         sky_island = island;
+        // Inserted Ampflower assistance here
+        init();
     }
 
     @Override
@@ -49,5 +51,10 @@ public class IslandManagementGUI extends PagedGUI{
                         }
                     }));
         }
+    }
+
+    @Override
+    public String setGUITitle() {
+        return "Manage Invites";
     }
 }

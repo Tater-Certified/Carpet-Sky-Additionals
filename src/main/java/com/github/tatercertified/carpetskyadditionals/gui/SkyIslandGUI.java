@@ -2,8 +2,6 @@ package com.github.tatercertified.carpetskyadditionals.gui;
 
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandManager;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandUtils;
-import com.github.tatercertified.carpetskyadditionals.gui.IslandListGUI;
-import com.github.tatercertified.carpetskyadditionals.gui.TextEditorGUI;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.item.Items;

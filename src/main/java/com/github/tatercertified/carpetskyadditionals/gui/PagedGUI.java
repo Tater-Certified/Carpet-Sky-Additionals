@@ -15,7 +15,20 @@ import java.util.List;
 import java.util.Map;
 
 public class PagedGUI {
+    private final ServerPlayerEntity user;
+    private final SimpleGui parent_gui;
+    private final Map<String, ?> map;
+    private final int item_amount;
+    private final String action_type;
     public PagedGUI(ServerPlayerEntity user, SimpleGui parent_gui, Map<String, ?> map, int item_amount, String action_type) {
+        this.user = user;
+        this.parent_gui = parent_gui;
+        this.map = map;
+        this.item_amount = item_amount;
+        this.action_type = action_type;
+    }
+
+    public void init() {
         List<List<?>> chunks = breakMapIntoChunks(map, item_amount);
         List<SimpleGui> pages = new ArrayList<>();
 
@@ -34,6 +47,7 @@ public class PagedGUI {
             for (Object item : chunk) {
                 addToGUI(item, gui);
             }
+            gui.setTitle(Text.literal(setGUITitle()));
             pages.add(gui);
             addNavigationBar(gui, parent_gui, pages.indexOf(gui), chunks, pages);
         }
@@ -96,5 +110,10 @@ public class PagedGUI {
 
     public void clickEvent(int index, ClickType type, SlotActionType action, GuiElementInterface element, String actions, SimpleGui current, SimpleGui parent_gui, ServerPlayerEntity user) {
         // Override
+    }
+
+    public String setGUITitle() {
+        // Override
+        return "";
     }
 }
