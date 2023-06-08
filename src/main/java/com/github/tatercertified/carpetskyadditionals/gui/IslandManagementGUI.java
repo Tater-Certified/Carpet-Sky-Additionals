@@ -33,21 +33,13 @@ public class IslandManagementGUI extends PagedGUI{
             gui.addSlot(new GuiElementBuilder(Items.PLAYER_HEAD)
                     .setSkullOwner(profile, sky_island.getServer())
                     .setName(Text.literal(profile.getName()))
-                    .setCallback(clickType -> {
+                    .setCallback((index, clickType, action) -> {
                         if (clickType.isLeft) {
                             sky_island.acceptJoinRequest(uuid, false);
+                            gui.setSlot(index, new GuiElementBuilder().setItem(Items.LIME_STAINED_GLASS_PANE).setName(Text.literal("Accepted")));
                         } else if (clickType.isRight) {
                             sky_island.rejectJoinRequest(uuid);
-                        }
-                    }));
-        } else {
-            gui.addSlot(new GuiElementBuilder(Items.PLAYER_HEAD)
-                    .setName(Text.literal((uuid).toString()))
-                    .setCallback(clickType -> {
-                        if (clickType.isLeft) {
-                            sky_island.acceptJoinRequest(uuid, false);
-                        } else if (clickType.isRight) {
-                            sky_island.rejectJoinRequest(uuid);
+                            gui.setSlot(index, new GuiElementBuilder().setItem(Items.RED_STAINED_GLASS_PANE).setName(Text.literal("Rejected")));
                         }
                     }));
         }

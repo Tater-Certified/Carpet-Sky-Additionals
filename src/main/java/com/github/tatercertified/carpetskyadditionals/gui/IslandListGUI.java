@@ -1,9 +1,11 @@
 package com.github.tatercertified.carpetskyadditionals.gui;
 
+import com.github.tatercertified.carpetskyadditionals.dimensions.PlayerSkyIslandWorld;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandManager;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandUtils;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandWorld;
 import com.github.tatercertified.carpetskyadditionals.interfaces.EntityIslandDataInterface;
+import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.elements.GuiElementInterface;
@@ -49,7 +51,7 @@ public class IslandListGUI extends PagedGUI{
                 case "visit" -> SkyIslandManager.visitIsland(island, user);
                 case "teleport" -> SkyIslandUtils.teleportToIsland(user, island.getOverworld(), GameMode.SURVIVAL);
                 case "manage" -> {
-                    new IslandManagementGUI(user, parent_gui, island.getMembers(), 45, null, island);
+                    new IslandManagementGUI(user, parent_gui, island.getRequests(), 45, null, island);
                     parent_gui = null;
                 }
                 case "admin" -> new AdminGUI(user, island);

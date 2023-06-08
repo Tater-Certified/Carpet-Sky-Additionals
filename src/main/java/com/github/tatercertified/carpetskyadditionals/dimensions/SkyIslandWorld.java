@@ -216,8 +216,14 @@ public class SkyIslandWorld {
         }
     }
 
-    public List<UUID> getRequests() {
-        return invite_requests;
+    public Map<String, ServerPlayerEntity> getRequests() {
+        Map<String, ServerPlayerEntity> requests = new HashMap<>();
+
+        for (UUID id : this.invite_requests) {
+            Optional<ServerPlayerEntity> player = OfflinePlayerUtils.getPlayer(this.server, id);
+            player.ifPresent(serverPlayerEntity -> requests.put(id.toString(), serverPlayerEntity));
+        }
+        return requests;
     }
 
     public void remove() {
