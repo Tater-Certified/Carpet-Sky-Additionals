@@ -2,19 +2,13 @@ package com.github.tatercertified.carpetskyadditionals.dimensions;
 
 import com.github.tatercertified.carpetskyadditionals.CarpetSkyAdditionals;
 import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtIo;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
-import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
-import org.apache.logging.log4j.LogManager;
 
-import java.io.File;
 import java.util.*;
 
 public class SkyIslandUtils {
@@ -60,27 +54,6 @@ public class SkyIslandUtils {
     public static void teleportToIsland(ServerPlayerEntity player, ServerWorld island, GameMode set_gamemode) {
         player.teleport(island, 8.5, 64, 9.5, player.getYaw(), player.getPitch());
         player.changeGameMode(set_gamemode);
-    }
-
-    public static void offlineTeleportToHub(ServerPlayerEntity player, NbtCompound data) {
-        player.setPosition(8.5, 64, 9.5);
-        data.putInt("playerGameType", 0);
-        player.setGameMode(data);
-        savePlayerData(player);
-    }
-
-    public static void savePlayerData(ServerPlayerEntity player) {
-        File playerDataDir = player.getServer().getSavePath(WorldSavePath.PLAYERDATA).toFile();
-        try {
-            NbtCompound compoundTag = player.writeNbt(new NbtCompound());
-            File file = File.createTempFile(player.getUuidAsString() + "-", ".dat", playerDataDir);
-            NbtIo.writeCompressed(compoundTag, file);
-            File file2 = new File(playerDataDir, player.getUuidAsString() + ".dat");
-            File file3 = new File(playerDataDir, player.getUuidAsString() + ".dat_old");
-            Util.backupAndReplace(file2, file, file3);
-        } catch (Exception var6) {
-            LogManager.getLogger().warn("Failed to save player data for {}", player.getName().getString());
-        }
     }
 
     public static SkyIslandWorld getVanillaIsland() {

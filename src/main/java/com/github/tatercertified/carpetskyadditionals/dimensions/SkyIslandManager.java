@@ -2,6 +2,7 @@ package com.github.tatercertified.carpetskyadditionals.dimensions;
 
 import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
 import com.github.tatercertified.carpetskyadditionals.mixin.SkyIslandCommandInvoker;
+import com.github.tatercertified.carpetskyadditionals.offline_player_utils.OfflinePlayerUtils;
 import net.minecraft.block.Blocks;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
@@ -14,6 +15,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.CheckedRandom;
 import net.minecraft.util.math.random.ChunkRandom;
 import net.minecraft.world.GameMode;
@@ -100,12 +102,12 @@ public class SkyIslandManager {
     }
 
     public static void leaveIsland(SkyIslandWorld island, ServerPlayerEntity player) {
-        island.removeMember(player);
         ((PlayerIslandDataInterface)player).removeHomeIsland(island);
+        island.removeMember(player);
         SkyIslandUtils.teleportToIsland(player, player.getServer().getWorld(ServerWorld.OVERWORLD), GameMode.SURVIVAL);
         player.sendMessage(Text.literal("You have been removed from this Island"));
 
-        if (island.getMembers().isEmpty()) {
+        if (island.getMembersLowRamConsumption().isEmpty()) {
             removeIsland(island);
         }
     }
@@ -128,28 +130,27 @@ public class SkyIslandManager {
     }
 
     private static void removeAllPlayersFromIsland(SkyIslandWorld island) {
-        List<ServerPlayerEntity> all = island.getMembers();
+        Map<String, ServerPlayerEntity> all = island.getMembers();
         MinecraftServer server = island.getServer();
 
-        for (ServerPlayerEntity player : all) {
-            if (isOnline(player, island.getServer())) {
-                if (((PlayerIslandDataInterface) player).getHomeIslands().contains(island)) {
-                    ((PlayerIslandDataInterface) player).removeHomeIsland(island);
-                }
+        for (ServerPlayerEntity player : all.values()) {
+            if (OfflinePlayerUtils.isPlayerOnline(player, island.getServer())) {
+                ((PlayerIslandDataInterface) player).removeHomeIsland(island);
                 if (isOnIsland(player, island)) {
                     SkyIslandUtils.teleportToIsland(player, server.getWorld(ServerWorld.OVERWORLD), GameMode.SURVIVAL);
                 }
                 player.sendMessage(Text.literal(island.getName() + " has been removed!"));
             } else {
-                NbtCompound data = server.getPlayerManager().loadPlayerData(player);
-                assert data != null;
-                SkyIslandUtils.offlineTeleportToHub(player, data);
+                NbtCompound player_data = OfflinePlayerUtils.getPlayerData(server, player);
+                OfflinePlayerUtils.teleportOffline(player, new Vec3d(8.5, 64, 9.5));
+                OfflinePlayerUtils.setDimension(player_data, server.getOverworld());
+                OfflinePlayerUtils.setGameMode(player_data, GameMode.ADVENTURE);
+                List<PlayerSkyIslandWorld> p_islands = OfflinePlayerUtils.readPlayerIslandsNbt(player_data);
+                p_islands.remove(((PlayerIslandDataInterface) player).getPIsland(island));
+                OfflinePlayerUtils.writePlayerIslandNbt(p_islands, player_data);
+                OfflinePlayerUtils.savePlayerData(player, player_data, server);
             }
         }
-    }
-
-    public static boolean isOnline(ServerPlayerEntity player, MinecraftServer server) {
-        return server.getPlayerManager().getPlayerList().contains(player);
     }
 
     public static void teleportHub(ServerPlayerEntity player) {

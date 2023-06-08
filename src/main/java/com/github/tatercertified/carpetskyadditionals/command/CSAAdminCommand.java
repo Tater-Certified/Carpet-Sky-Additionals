@@ -1,5 +1,6 @@
 package com.github.tatercertified.carpetskyadditionals.command;
 
+import com.github.tatercertified.carpetskyadditionals.gui.SkyIslandGUI;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandManager;
 

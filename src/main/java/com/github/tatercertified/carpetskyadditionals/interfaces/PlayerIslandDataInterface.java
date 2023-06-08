@@ -18,4 +18,6 @@ public interface PlayerIslandDataInterface {
     void setPlayerIslands(List<PlayerSkyIslandWorld> islands);
 
     PlayerSkyIslandWorld getPIsland(ServerWorld world);
+
+    PlayerSkyIslandWorld getPIsland(SkyIslandWorld island);
 }

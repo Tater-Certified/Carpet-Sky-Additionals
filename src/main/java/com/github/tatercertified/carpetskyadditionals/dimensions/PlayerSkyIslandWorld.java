@@ -58,6 +58,8 @@ public class PlayerSkyIslandWorld {
 
         compound.putString("spawn-dimension", this.spawn_dimension.getValue().getPath());
 
+        compound.putString("island-name", this.representation.getName());
+
         return compound;
     }
 }

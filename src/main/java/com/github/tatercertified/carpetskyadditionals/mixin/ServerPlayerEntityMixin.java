@@ -5,11 +5,9 @@ import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandUtils;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandWorld;
 import com.github.tatercertified.carpetskyadditionals.interfaces.EntityIslandDataInterface;
 import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
+import com.github.tatercertified.carpetskyadditionals.offline_player_utils.OfflinePlayerUtils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -43,35 +41,12 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
 
     @Inject(method = "readCustomDataFromNbt", at = @At("HEAD"))
     public void readNBT(NbtCompound nbt, CallbackInfo ci) {
-        NbtList list = nbt.getList("home-islands", NbtElement.STRING_TYPE);
-        NbtList list1 = nbt.getList("spawn-points", NbtElement.COMPOUND_TYPE);
-        for (int i = 0; i < list.size(); i++) {
-            String name = list.getString(i);
-            SkyIslandWorld home = SkyIslandUtils.getSkyIsland(name);
-            NbtCompound compound = list1.getCompound(i);
-            PlayerSkyIslandWorld p_island;
-            if (home != null) {
-                p_island = new PlayerSkyIslandWorld(home);
-                p_island.fromNbt(compound);
-                homes.add(p_island);
-            }
-        }
+        this.homes = OfflinePlayerUtils.readPlayerIslandsNbt(nbt);
     }
 
     @Inject(method = "writeCustomDataToNbt", at = @At("HEAD"))
     public void writeNBT(NbtCompound nbt, CallbackInfo ci) {
-        NbtList nbtList = new NbtList();
-        NbtList nbtList1 = new NbtList();
-
-        for (PlayerSkyIslandWorld island : homes) {
-            NbtString string = NbtString.of(island.getSkyIslandWorld().getName());
-            nbtList.add(string);
-
-            NbtCompound compound = island.toNbt();
-            nbtList1.add(compound);
-        }
-        nbt.put("home-islands", nbtList);
-        nbt.put("spawn-points", nbtList1);
+        OfflinePlayerUtils.writePlayerIslandNbt(this.homes, nbt);
     }
 
     /**
@@ -174,7 +149,8 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
         this.homes = islands;
     }
 
-    private PlayerSkyIslandWorld getPIsland(SkyIslandWorld island) {
+    @Override
+    public PlayerSkyIslandWorld getPIsland(SkyIslandWorld island) {
         for (PlayerSkyIslandWorld p_island : homes) {
             if (p_island.getSkyIslandWorld() == island) {
                 return p_island;

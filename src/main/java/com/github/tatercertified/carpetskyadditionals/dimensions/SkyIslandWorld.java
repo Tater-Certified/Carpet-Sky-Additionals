@@ -2,6 +2,7 @@ package com.github.tatercertified.carpetskyadditionals.dimensions;
 
 import com.github.tatercertified.carpetskyadditionals.CarpetSkyAdditionals;
 import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
+import com.github.tatercertified.carpetskyadditionals.offline_player_utils.OfflinePlayerUtils;
 import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -17,10 +18,7 @@ import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.fantasy.RuntimeWorldHandle;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class SkyIslandWorld {
     private String name;
@@ -137,14 +135,12 @@ public class SkyIslandWorld {
         return dragon_fight;
     }
 
-    public void setDragonFight(NbtCompound data) {
-        this.dragon_fight = data;
-    }
-
     public boolean tryAddMember(ServerPlayerEntity player, boolean creation) {
         if (members.size() < max_members) {
             if (creation) {
-                acceptJoinRequest(player.getUuid());
+                acceptJoinRequest(player.getUuid(), true);
+                SkyIslandUtils.teleportToIsland(player, this.getOverworld(), GameMode.SURVIVAL);
+                player.sendMessage(Text.literal("Welcome to " + this.getName()));
             } else {
                 addJoinRequest(player);
             }
@@ -161,14 +157,20 @@ public class SkyIslandWorld {
         this.members = members_list;
     }
 
-    public List<ServerPlayerEntity> getMembers() {
+    public Map<String, ServerPlayerEntity> getMembers() {
+        Map<String, ServerPlayerEntity> map = new HashMap<>();
+        for (UUID id : this.members) {
+            Optional<ServerPlayerEntity> player = OfflinePlayerUtils.getPlayer(this.server, id);
+            player.ifPresent(serverPlayerEntity -> map.put(serverPlayerEntity.getName().getString(), serverPlayerEntity));
+        }
+        return map;
+    }
+
+    public List<ServerPlayerEntity> getMembersLowRamConsumption() {
         List<ServerPlayerEntity> list = new ArrayList<>();
-        for (UUID id : members) {
-            ServerPlayerEntity player = server.getPlayerManager().getPlayer(id);
-            if (server.getUserCache().getByUuid(id).isPresent() && player == null) {
-                player = server.getPlayerManager().createPlayer(server.getUserCache().getByUuid(id).get());
-            }
-            list.add(player);
+        for (UUID id : this.members) {
+            Optional<ServerPlayerEntity> player = OfflinePlayerUtils.getPlayer(this.server, id);
+            player.ifPresent(list::add);
         }
         return list;
     }
@@ -179,9 +181,11 @@ public class SkyIslandWorld {
             requester.sendMessage(Text.literal("You have already requested to join this server!"));
         } else {
             this.invite_requests.add(requester.getUuid());
-            if (SkyIslandManager.isOnline(server.getPlayerManager().getPlayer(getOwner()), server)) {
-                ServerPlayerEntity owner = server.getPlayerManager().getPlayer(getOwner());
-                owner.sendMessage(Text.literal(requester.getName() + " has requested to join " + getName()));
+            Optional<ServerPlayerEntity> owner = OfflinePlayerUtils.getPlayer(this.server, this.getOwner());
+
+            if (owner.isPresent() && OfflinePlayerUtils.isPlayerOnline(owner.get(), this.server)) {
+                ServerPlayerEntity owner_player = owner.get();
+                owner_player.sendMessage(Text.literal(requester.getName().getString() + " has requested to join " + getName()));
             }
         }
     }
@@ -190,24 +194,26 @@ public class SkyIslandWorld {
         this.invite_requests.remove(request);
     }
 
-    public void acceptJoinRequest(UUID request) {
+    public void acceptJoinRequest(UUID request, boolean creation) {
         this.invite_requests.remove(request);
         this.members.add(request);
 
-        ServerPlayerEntity requester = server.getPlayerManager().getPlayer(request);
-        if (SkyIslandManager.isOnline(server.getPlayerManager().getPlayer(request), server)) {
-            ((PlayerIslandDataInterface)requester).addHomeIsland(this);
-            SkyIslandUtils.teleportToIsland(requester, this.getOverworld(), GameMode.SURVIVAL);
-            requester.changeGameMode(GameMode.SURVIVAL);
-            requester.sendMessage(Text.literal("Welcome to " + this.getName()));
-        } else {
-            NbtCompound data = server.getPlayerManager().loadPlayerData(requester);
-            assert data != null;
-            NbtList home_islands = data.getList("home-islands", NbtElement.STRING_TYPE);
-            home_islands.add(NbtString.of(this.getName()));
-            SkyIslandUtils.savePlayerData(requester);
+        Optional<ServerPlayerEntity> requester = OfflinePlayerUtils.getPlayer(this.server, request);
+        if (requester.isPresent()) {
+            ServerPlayerEntity player = requester.get();
+            if (OfflinePlayerUtils.isPlayerOnline(requester.get(), this.server)) {
+                ((PlayerIslandDataInterface)player).addHomeIsland(this);
+                if (!creation) {
+                    player.sendMessage(Text.literal("Your request to " + this.getName() + " has been accepted"));
+                }
+            } else {
+                NbtCompound player_data = OfflinePlayerUtils.getPlayerData(this.server, player);
+                List<PlayerSkyIslandWorld> p_islands = OfflinePlayerUtils.readPlayerIslandsNbt(player_data);
+                p_islands.add(new PlayerSkyIslandWorld(this));
+                OfflinePlayerUtils.writePlayerIslandNbt(p_islands, player_data);
+                OfflinePlayerUtils.savePlayerData(player, player_data, this.server);
+            }
         }
-
     }
 
     public List<UUID> getRequests() {
