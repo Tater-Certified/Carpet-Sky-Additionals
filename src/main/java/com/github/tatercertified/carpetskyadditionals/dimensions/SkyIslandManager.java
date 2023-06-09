@@ -102,8 +102,8 @@ public class SkyIslandManager {
     }
 
     public static void leaveIsland(SkyIslandWorld island, ServerPlayerEntity player) {
-        ((PlayerIslandDataInterface)player).removeHomeIsland(island);
         island.removeMember(player);
+        ((PlayerIslandDataInterface)player).removeHomeIsland(island);
         SkyIslandUtils.teleportToIsland(player, player.getServer().getWorld(ServerWorld.OVERWORLD), GameMode.SURVIVAL);
         player.sendMessage(Text.literal("You have been removed from this Island"));
 

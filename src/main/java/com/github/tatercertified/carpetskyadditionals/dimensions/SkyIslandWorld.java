@@ -136,7 +136,7 @@ public class SkyIslandWorld {
     }
 
     public boolean tryAddMember(ServerPlayerEntity player, boolean creation) {
-        if (members.size() < max_members) {
+        if (this.members.size() < this.max_members) {
             if (creation) {
                 acceptJoinRequest(player.getUuid(), true);
                 SkyIslandUtils.teleportToIsland(player, this.getOverworld(), GameMode.SURVIVAL);
@@ -150,7 +150,7 @@ public class SkyIslandWorld {
     }
 
     public void removeMember(ServerPlayerEntity removed) {
-        members.remove(removed.getUuid());
+        this.members.remove(removed.getUuid());
     }
 
     private void setMembers(List<UUID> members_list) {

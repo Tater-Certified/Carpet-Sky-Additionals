@@ -1,26 +1,37 @@
 package com.github.tatercertified.carpetskyadditionals.mixin;
 
+import com.github.tatercertified.carpetskyadditionals.carpet.CarpetSkyAdditionalsSettings;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandUtils;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandWorld;
 import com.github.tatercertified.carpetskyadditionals.interfaces.EntityIslandDataInterface;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Fertilizable;
 import net.minecraft.entity.Entity;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockLocating;
+import net.minecraft.world.Heightmap;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.NetherPortal;
+import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
 
@@ -60,6 +71,16 @@ public abstract class EntityMixin implements EntityIslandDataInterface {
     @Shadow public abstract float getYaw();
 
     @Shadow public abstract float getPitch();
+
+    @Shadow @Nullable public abstract MinecraftServer getServer();
+
+    @Shadow public abstract int getBlockX();
+
+    @Shadow public abstract int getBlockZ();
+
+    @Shadow public abstract int getBlockY();
+
+    @Shadow @Final protected Random random;
 
     @Override
     public SkyIslandWorld getCurrentIsland() {
@@ -129,5 +150,60 @@ public abstract class EntityMixin implements EntityIslandDataInterface {
 
             return NetherPortal.getNetherTeleportTarget(destination, rect, axis, vec3d, ((Entity)(Object)this), this.getVelocity(), this.getYaw(), this.getPitch());
         }).orElse(null);
+    }
+
+    // Carpet Rule sneakingGrowsPlants
+    @Inject(method = "setSneaking", at = @At("TAIL"))
+    private void setSneaking(boolean sneaking, CallbackInfo ci) {
+        if (CarpetSkyAdditionalsSettings.sneakingGrowsPlants && sneaking && this.random.nextInt(CarpetSkyAdditionalsSettings.sneakGrowingProbability) == 0) {
+            BlockPos pos1 = getRandomBlockPosInSquare();
+            BlockState blockState = this.world.getBlockState(pos1);
+            if (blockState.getBlock() instanceof Fertilizable fertilizable) {
+                if (fertilizable.canGrow(this.world, this.random, pos1, blockState)) {
+                    fertilizable.grow((ServerWorld) this.world, this.random, pos1, blockState);
+                    simulateBonemealParticles(pos1);
+                }
+            }
+        }
+    }
+
+    private BlockPos getRandomBlockPosInSquare() {
+        int radius = CarpetSkyAdditionalsSettings.sneakGrowingRadius;
+
+        int offsetX = getRandomOffset(radius);
+        int offsetZ = getRandomOffset(radius);
+
+        int blockX = this.getBlockX() + offsetX;
+        int blockZ = this.getBlockZ() + offsetZ;
+        int blockY = this.world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, blockX, blockZ);
+
+        int yCheck = MathHelper.abs(this.getBlockY() - blockY);
+
+        if (yCheck > 3) {
+            blockY = this.getBlockY();
+        }
+
+        return new BlockPos(blockX, blockY, blockZ);
+    }
+
+    private int getRandomOffset(int radius) {
+        return this.random.nextInt(radius * 2 + 1) - radius;
+    }
+
+    private void simulateBonemealParticles(BlockPos pos) {
+
+        BlockState blockState = this.world.getBlockState(pos);
+            double e = blockState.getOutlineShape(this.world, pos).getMax(Direction.Axis.Y);
+
+            for(int i = 0; i < 15; ++i) {
+                double f = this.random.nextGaussian() * 0.02;
+                double g = this.random.nextGaussian() * 0.02;
+                double h = this.random.nextGaussian() * 0.02;
+                double k = pos.getX() + this.random.nextDouble();
+                double l = pos.getY() + this.random.nextDouble() * e;
+                double m = pos.getZ() + this.random.nextDouble();
+
+                ((ServerWorld) this.world).spawnParticles(ParticleTypes.HAPPY_VILLAGER, k, l, m, 1, f, g, h, this.random.nextDouble());
+            }
     }
 }

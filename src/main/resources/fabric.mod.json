@@ -15,7 +15,6 @@
     "client": [
     ],
     "main": [
-      "com.github.tatercertified.carpetskyadditionals.CarpetSkyAdditionals"
     ]
   },
   "mixins": [

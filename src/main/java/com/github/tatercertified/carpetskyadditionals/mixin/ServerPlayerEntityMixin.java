@@ -158,4 +158,5 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
         }
         return null;
     }
+
 }
