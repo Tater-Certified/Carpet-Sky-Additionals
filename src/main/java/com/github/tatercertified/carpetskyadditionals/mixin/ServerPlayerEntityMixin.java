@@ -23,6 +23,7 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
     @Shadow private float spawnAngle;
     @Shadow private boolean spawnForced;
     private List<PlayerSkyIslandWorld> homes = new ArrayList<>();
+    private PlayerSkyIslandWorld p_island;
 
     @Inject(method = "readCustomDataFromNbt", at = @At("HEAD"))
     public void readNBT(NbtCompound nbt, CallbackInfo ci) {
@@ -80,40 +82,36 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
         return pos;
     }
 
-    /**
-     * @author QPCrummer
-     * @reason Same reason as above the one above
-     */
-    @Overwrite
-    public void setSpawnPoint(RegistryKey<World> dimension, @Nullable BlockPos pos, float angle, boolean forced, boolean sendMessage) {
+    @Inject(method = "setSpawnPoint", at = @At("HEAD"), cancellable = true)
+    private void setSpawnPoint(RegistryKey<World> dimension, BlockPos pos, float angle, boolean forced, boolean sendMessage, CallbackInfo ci) {
         SkyIslandWorld current = ((EntityIslandDataInterface)(Object)this).getCurrentIsland();
-        PlayerSkyIslandWorld p_island = getPIsland(current);
+        p_island = getPIsland(current);
 
         if (p_island == null) {
             this.sendMessage(Text.literal("You cannot set your spawn on this Island!"));
-            return;
-        }
-
-        if (pos != null) {
-
-            boolean bl = pos.equals(p_island.getSpawnPos()) && dimension.equals(p_island.getSpawnDimension());
-            if (sendMessage && !bl) {
-                this.sendMessage(Text.translatable("block.minecraft.set_spawn"));
-            }
-
-            p_island.setSpawnPos(pos, dimension);
-
-            this.spawnAngle = angle;
-            this.spawnForced = forced;
-
-        } else {
-            p_island.removeSpawnPos();
-
-            this.spawnAngle = 0.0F;
-            this.spawnForced = false;
+            ci.cancel();
         }
     }
 
+    @ModifyArg(method = "setSpawnPoint", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/BlockPos;equals(Ljava/lang/Object;)Z"))
+    private Object modifySpawnPos(Object par1) {
+        return p_island.getSpawnPos();
+    }
+
+    @ModifyArg(method = "setSpawnPoint", at = @At(value = "INVOKE", target = "Ljava/lang/Object;equals(Ljava/lang/Object;)Z"))
+    private Object modifySpawnDimension(Object obj) {
+        return p_island.getSpawnDimension();
+    }
+
+    @Inject(method = "setSpawnPoint", at = @At(value = "FIELD", target = "Lnet/minecraft/server/network/ServerPlayerEntity;spawnPointDimension:Lnet/minecraft/registry/RegistryKey;", ordinal = 1))
+    private void setSpawnPos(RegistryKey<World> dimension, BlockPos pos, float angle, boolean forced, boolean sendMessage, CallbackInfo ci) {
+        p_island.setSpawnPos(pos, dimension);
+    }
+
+    @Inject(method = "setSpawnPoint", at = @At(value = "FIELD", target = "Lnet/minecraft/server/network/ServerPlayerEntity;spawnPointDimension:Lnet/minecraft/registry/RegistryKey;", ordinal = 2))
+    private void removeSpawnPos(RegistryKey<World> dimension, BlockPos pos, float angle, boolean forced, boolean sendMessage, CallbackInfo ci) {
+        p_island.removeSpawnPos();
+    }
     @Override
     public PlayerSkyIslandWorld getPIsland(ServerWorld world) {
         SkyIslandWorld island = SkyIslandUtils.getSkyIsland(world);
