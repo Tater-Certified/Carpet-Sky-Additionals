@@ -9,7 +9,7 @@
     "repo": "https://github.com/Tater-Certified/Carpet-Sky-Additionals"
   },
   "license": "LGPL-3.0",
-  "icon": "assets/carpet-sky-additions-additions/icon.png",
+  "icon": "assets/carpet-sky-additionals/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -19,8 +19,9 @@
     "carpet-sky-additionals.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=${loader_version}",
+    "fabricloader": "*",
+    "carpetskyadditions": "*",
     "fabric": "*",
-    "minecraft": "${minecraft_version}"
+    "minecraft": "1.19.4"
   }
 }

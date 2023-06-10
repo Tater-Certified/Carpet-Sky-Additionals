@@ -1,11 +1,9 @@
 package com.github.tatercertified.carpetskyadditionals.gui;
 
-import com.github.tatercertified.carpetskyadditionals.dimensions.PlayerSkyIslandWorld;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandManager;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandUtils;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandWorld;
 import com.github.tatercertified.carpetskyadditionals.interfaces.EntityIslandDataInterface;
-import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.elements.GuiElementInterface;
@@ -48,15 +46,21 @@ public class IslandListGUI extends PagedGUI{
                 case "delete" -> SkyIslandManager.removeIsland(island);
                 case "join" -> SkyIslandManager.joinIsland(island, user, false);
                 case "leave" -> SkyIslandManager.leaveIsland(island, user);
-                case "visit" -> SkyIslandManager.visitIsland(island, user);
-                case "teleport" -> SkyIslandUtils.teleportToIsland(user, island.getOverworld(), GameMode.SURVIVAL);
+                case "visit" -> {
+                    SkyIslandManager.visitIsland(island, user);
+                    parent_gui = null;
+                }
+                case "teleport" -> {
+                    SkyIslandUtils.teleportToIsland(user, island.getOverworld(), GameMode.SURVIVAL);
+                    parent_gui = null;
+                }
                 case "manage" -> {
                     new IslandManagementGUI(user, parent_gui, island.getRequests(), 45, null, island);
                     parent_gui = null;
                 }
                 case "admin" -> new AdminGUI(user, island);
                 //TODO Find a safe alternative to renaming islands
-                //case "rename" -> openTextEditor(player, gui, SkyIslandUtils.getSkyIsland(name));
+                case "rename" -> parent_gui = null;
             }
             current_gui.close();
             if (parent_gui != null) {

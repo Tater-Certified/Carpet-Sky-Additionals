@@ -40,7 +40,7 @@ public class SkyIslandGUI {
 
         gui.setSlot(2, new GuiElementBuilder().setItem(Items.ANVIL).setName(Text.literal("Rename An Island")).setCallback(clickType -> {
             gui.close();
-            new IslandListGUI(this.player, null, SkyIslandUtils.getAllOwnersIslands(this.player), 45, "rename");
+            new IslandListGUI(this.player, gui, SkyIslandUtils.getAllOwnersIslands(this.player), 45, "rename");
         }));
 
         gui.setSlot(3, new GuiElementBuilder().setItem(Items.LIGHT).setName(Text.literal("Manage Your Islands")).setCallback(clickType -> {
@@ -60,12 +60,12 @@ public class SkyIslandGUI {
 
         gui.setSlot(6, new GuiElementBuilder().setItem(Items.OAK_DOOR).setName(Text.literal("Visit An Island")).setCallback(clickType -> {
             gui.close();
-            new IslandListGUI(this.player, null, SkyIslandUtils.getAllNotUsersIslands(this.player), 45, "visit");
+            new IslandListGUI(this.player, gui, SkyIslandUtils.getAllNotUsersIslands(this.player), 45, "visit");
         }));
 
         gui.setSlot(7, new GuiElementBuilder().setItem(Items.RED_BED).setName(Text.literal("Go To Your Island")).setCallback(clickType -> {
             gui.close();
-            new IslandListGUI(this.player, null, SkyIslandUtils.getAllUsersIslands(this.player), 45, "teleport");
+            new IslandListGUI(this.player, gui, SkyIslandUtils.getAllUsersIslands(this.player), 45, "teleport");
         }));
 
         gui.setSlot(8, new GuiElementBuilder().setItem(Items.DIAMOND_BLOCK).setName(Text.literal("Go To The Hub")).setCallback(clickType -> SkyIslandManager.teleportHub(player)));

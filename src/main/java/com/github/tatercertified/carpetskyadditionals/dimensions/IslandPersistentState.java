@@ -26,11 +26,11 @@ public class IslandPersistentState extends PersistentState {
 
 
     public static IslandPersistentState getServerState(MinecraftServer server) {
-        PersistentStateManager persistentStateManager = server
-                .getWorld(World.OVERWORLD).getPersistentStateManager();
+        PersistentStateManager persistentStateManager = server.getWorld(World.OVERWORLD).getPersistentStateManager();
 
         return persistentStateManager.getOrCreate(
                 IslandPersistentState::createFromNbt,
-                IslandPersistentState::new, CarpetSkyAdditionals.MOD_ID);
+                IslandPersistentState::new,
+                CarpetSkyAdditionals.MOD_ID);
     }
 }

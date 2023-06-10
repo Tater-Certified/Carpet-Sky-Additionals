@@ -232,7 +232,9 @@ public class SkyIslandWorld {
         end_handle.delete();
     }
 
+
     public NbtCompound getNBT() {
+
         NbtCompound compound = new NbtCompound();
         NbtInt max_members = NbtInt.of(getMaxMembers());
         NbtString owner = NbtString.of(getOwner().toString());

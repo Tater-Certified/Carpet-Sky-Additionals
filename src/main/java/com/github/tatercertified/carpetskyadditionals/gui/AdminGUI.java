@@ -14,8 +14,15 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 public class AdminGUI {
-
+    private final ServerPlayerEntity user;
+    private final SkyIslandWorld island;
     public AdminGUI(ServerPlayerEntity user, SkyIslandWorld island) {
+        this.user = user;
+        this.island = island;
+        init();
+    }
+
+    private void init() {
         SimpleGui gui = new SimpleGui(ScreenHandlerType.HOPPER, user, true) {
             @Override
             public boolean onClick(int index, ClickType type, SlotActionType action, GuiElementInterface element) {
@@ -24,9 +31,12 @@ public class AdminGUI {
                     return super.onClick(index, type, action, element);
                 }
                 switch (name) {
-                    case "Delete Island" -> SkyIslandManager.removeIsland(island);
+                    case "Delete Island" -> {
+                        SkyIslandManager.removeIsland(island);
+                        this.close();
+                    }
                     case "Remove Member" -> new IslandMemberListGUI(user, this, island.getMembers(), 45, "remove", island);
-                    case "Add Member" -> new IslandMemberListGUI(user, this, island.getMembers(), 45, "add", island);
+                    case "Add Member" -> new IslandMemberListGUI(user, this, island.getRequests(), 45, "add", island);
                 }
 
                 return super.onClick(index, type, action, element);
@@ -39,5 +49,7 @@ public class AdminGUI {
         gui.setSlot(2, new GuiElementBuilder().setItem(Items.SKELETON_SKULL).setName(Text.literal("Remove Member")));
         gui.setSlot(3, new GuiElementBuilder().setItem(Items.PLAYER_HEAD).setName(Text.literal("Add Member")));
         gui.setSlot(4, new ItemStack(Items.GRAY_STAINED_GLASS_PANE));
+
+        gui.open();
     }
 }
