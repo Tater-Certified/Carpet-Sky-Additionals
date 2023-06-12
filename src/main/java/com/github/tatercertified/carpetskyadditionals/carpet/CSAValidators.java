@@ -5,7 +5,7 @@ import carpet.api.settings.Validator;
 import net.minecraft.server.command.ServerCommandSource;
 import org.jetbrains.annotations.Nullable;
 
-public class CSAValidators {
+public final class CSAValidators {
     private CSAValidators() {}
 
     public static class NonZeroPositive<T extends Number> extends Validator<T> {

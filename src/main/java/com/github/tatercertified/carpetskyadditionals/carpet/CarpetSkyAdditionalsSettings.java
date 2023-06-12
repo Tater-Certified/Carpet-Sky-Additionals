@@ -8,7 +8,7 @@ public class CarpetSkyAdditionalsSettings {
             categories = {RuleCategory.SURVIVAL, "sky-island-tweaks"},
             strict = false
     )
-    public static boolean sneakingGrowsPlants = false;
+    public static boolean sneakingGrowsPlants;
 
     @Rule(
             categories = {RuleCategory.SURVIVAL, "sky-island-tweaks"},

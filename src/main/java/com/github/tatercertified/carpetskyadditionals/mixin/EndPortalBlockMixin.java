@@ -37,7 +37,7 @@ public class EndPortalBlockMixin {
                     blockPos = ((ServerPlayerEntity) entity).getSpawnPointPosition();
                     serverWorld = current.getServer().getWorld(((ServerPlayerEntity) entity).getSpawnPointDimension());
                     if (blockPos == null) {
-                        blockPos = current.getOverworld().getSpawnPos();
+                        blockPos = new BlockPos(8, 64, 9);
                     }
                 } else {
                     blockPos = current.getOverworld().getSpawnPos();

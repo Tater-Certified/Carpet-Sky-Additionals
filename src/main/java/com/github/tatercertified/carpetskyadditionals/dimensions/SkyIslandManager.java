@@ -33,8 +33,7 @@ public class SkyIslandManager {
     public static void loadIslands(MinecraftServer server, NbtList nbt) {
         fantasy = Fantasy.get(server);
 
-        SkyIslandWorld vanilla = new VanillaWorldOverride("overworld", -1, server, fantasy, server.getOverworld().getSeed(), new NbtCompound());
-        islands.put("overworld", vanilla);
+        new VanillaWorldOverride("overworld", -1, server, fantasy, server.getOverworld().getSeed(), new NbtCompound());
 
         if (nbt != null) {
             for (int i = 0; i < nbt.size(); i++) {
@@ -42,7 +41,6 @@ public class SkyIslandManager {
 
                 SkyIslandWorld island = new SkyIslandWorld(compound.getString("name"), compound.getInt("max_members"), server, fantasy, compound.getLong("seed"), compound.getCompound("dragon_fight"));
                 island.loadNBT(compound);
-                islands.put(island.getName(), island);
             }
         }
     }
@@ -53,6 +51,7 @@ public class SkyIslandManager {
         world.setOwnerName(creator.getName().getString());
         addIsland(world);
         generateIslandStructure(world, server);
+        world.generateEndPillars();
         BlockPos pos = new BlockPos(8, 63, 9);
         world.getOverworld().setBlockState(pos, Blocks.BEDROCK.getDefaultState());
         world.getOverworld().setSpawnPos(pos, 0.0F);

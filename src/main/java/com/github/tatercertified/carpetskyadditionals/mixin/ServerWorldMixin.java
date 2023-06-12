@@ -32,15 +32,13 @@ public abstract class ServerWorldMixin {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void setDragonFight(MinecraftServer server, Executor workerExecutor, LevelStorage.Session session, ServerWorldProperties properties, RegistryKey worldKey, DimensionOptions dimensionOptions, WorldGenerationProgressListener worldGenerationProgressListener, boolean debugWorld, long seed, List spawners, boolean shouldTickTime, CallbackInfo ci) {
-        SkyIslandWorld island = SkyIslandUtils.getSkyIsland((ServerWorld) (Object) this);
         if (((ServerWorld)(Object)this).getDimensionEntry().matchesKey(DimensionTypes.THE_END)) {
-            if (island != null) {
-                this.enderDragonFight = new EnderDragonFight(((ServerWorld) (Object) this), island.getSeed(), island.getDragonFight());
-            } else {
+            SkyIslandWorld island = SkyIslandUtils.getSkyIsland((ServerWorld) (Object) this);
+            if (island == null) {
                 this.enderDragonFight = new EnderDragonFight(((ServerWorld) (Object) this), this.getServer().getSaveProperties().getGeneratorOptions().getSeed(), this.getServer().getSaveProperties().getDragonFight());
+            } else {
+                this.enderDragonFight = new EnderDragonFight(((ServerWorld) (Object) this), island.getSeed(), island.getDragonFight());
             }
-
         }
     }
-
 }

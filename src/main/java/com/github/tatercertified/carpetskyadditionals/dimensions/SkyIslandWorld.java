@@ -2,7 +2,9 @@ package com.github.tatercertified.carpetskyadditionals.dimensions;
 
 import com.github.tatercertified.carpetskyadditionals.CarpetSkyAdditionals;
 import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
+import com.github.tatercertified.carpetskyadditionals.mixin.EnderDragonFightInvoker;
 import com.github.tatercertified.carpetskyadditionals.offline_player_utils.OfflinePlayerUtils;
+import com.google.common.collect.ImmutableList;
 import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -10,17 +12,21 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
+import net.minecraft.world.gen.feature.EndSpikeFeature;
+import net.minecraft.world.gen.feature.EndSpikeFeatureConfig;
+import net.minecraft.world.gen.feature.Feature;
 import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.fantasy.RuntimeWorldHandle;
 
 import java.util.*;
 
-public class SkyIslandWorld {
+public class SkyIslandWorld implements EnderDragonFightInvoker{
     private String name;
     private int max_members;
     private UUID owner;
@@ -36,6 +42,7 @@ public class SkyIslandWorld {
 
     public SkyIslandWorld(String name, int max_members, MinecraftServer server, Fantasy fantasy, long seed, NbtCompound dragon_fight) {
         this.name = name;
+        SkyIslandManager.islands.put(this.getName(), this);
         this.max_members = max_members;
         this.server = server;
         this.dragon_fight = dragon_fight;
@@ -76,7 +83,6 @@ public class SkyIslandWorld {
                 .setGenerator(server.getWorld(World.END).getChunkManager().getChunkGenerator());
 
         end_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, name + "-end"), worldConfig2);
-        
     }
 
     public ServerWorld getOverworld() {
@@ -226,6 +232,21 @@ public class SkyIslandWorld {
         return requests;
     }
 
+    public void generateEndPillars() {
+        invokeLoadChunks();
+
+        List<EndSpikeFeature.Spike> list = EndSpikeFeature.getSpikes(this.getEnd());
+        for (EndSpikeFeature.Spike spike : list) {
+
+            for (BlockPos blockPos : BlockPos.iterate(new BlockPos(spike.getCenterX() - 10, spike.getHeight() - 10, spike.getCenterZ() - 10), new BlockPos(spike.getCenterX() + 10, spike.getHeight() + 10, spike.getCenterZ() + 10))) {
+                this.getEnd().removeBlock(blockPos, false);
+            }
+
+            EndSpikeFeatureConfig endSpikeFeatureConfig = new EndSpikeFeatureConfig(true, ImmutableList.of(spike), null);
+            Feature.END_SPIKE.generateIfValid(endSpikeFeatureConfig, this.getEnd(), this.getEnd().getChunkManager().getChunkGenerator(), Random.create(), new BlockPos(spike.getCenterX(), 45, spike.getCenterZ()));
+        }
+    }
+
     public void remove() {
         overworld_handle.delete();
         nether_handle.delete();
@@ -271,5 +292,10 @@ public class SkyIslandWorld {
         }
 
         setMembers(players);
+    }
+
+    @Override
+    public boolean invokeLoadChunks() {
+        return true;
     }
 }
