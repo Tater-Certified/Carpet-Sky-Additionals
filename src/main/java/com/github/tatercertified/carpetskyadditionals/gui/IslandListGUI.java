@@ -5,15 +5,17 @@ import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandUtils;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandWorld;
 import com.github.tatercertified.carpetskyadditionals.interfaces.EntityIslandDataInterface;
 import eu.pb4.sgui.api.ClickType;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.elements.GuiElementInterface;
 import eu.pb4.sgui.api.gui.SimpleGui;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameMode;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class IslandListGUI extends PagedGUI{
@@ -27,11 +29,19 @@ public class IslandListGUI extends PagedGUI{
 
     @Override
     public void addToGUI(Object item, SimpleGui gui) {
+        SkyIslandWorld island = (SkyIslandWorld)item;
+        ItemStack stack;
         if (item == current) {
-            gui.addSlot(new GuiElementBuilder().setItem(Items.GLOWSTONE).setName(Text.literal(((SkyIslandWorld)item).getName())).addLoreLine(Text.literal("Owner: " + ((SkyIslandWorld)item).getOwnerName())));
+            stack = new ItemStack(Items.GLOWSTONE);
         } else {
-            gui.addSlot(new GuiElementBuilder().setItem(Items.GRASS_BLOCK).setName(Text.literal(((SkyIslandWorld)item).getName())).addLoreLine(Text.literal("Owner: " + ((SkyIslandWorld)item).getOwnerName())));
+            stack = new ItemStack(Items.GRASS_BLOCK);
         }
+        stack.setCustomName(Text.literal(island.getName()));
+        addLore(stack, Collections.singletonList(Text.literal("Owner: " + island.getOwnerName())));
+        NbtCompound compound = new NbtCompound();
+        compound.putLong("id", island.getIdentification());
+        stack.setSubNbt("island_data", compound);
+        gui.addSlot(stack);
     }
 
     @Override
@@ -39,9 +49,9 @@ public class IslandListGUI extends PagedGUI{
         if (element == null) {
             return;
         }
-        String name = element.getItemStack().getName().getString();
-        if (element.getItemStack().getItem() == Items.GRASS_BLOCK || element.getItemStack().getItem() == Items.GLOWSTONE) {
-            SkyIslandWorld island = SkyIslandUtils.getSkyIsland(name);
+        ItemStack stack = element.getItemStack();
+        if (stack.getItem() == Items.GRASS_BLOCK || stack.getItem() == Items.GLOWSTONE) {
+            SkyIslandWorld island = SkyIslandUtils.getSkyIsland(getLongFromItemStack(stack));
             switch (actions) {
                 case "delete" -> SkyIslandManager.removeIsland(island);
                 case "join" -> SkyIslandManager.joinIsland(island, user, false);
@@ -59,7 +69,6 @@ public class IslandListGUI extends PagedGUI{
                     parent_gui = null;
                 }
                 case "admin" -> new AdminGUI(user, island);
-                //TODO Find a safe alternative to renaming islands
                 case "rename" -> parent_gui = null;
             }
             current_gui.close();
@@ -72,5 +81,10 @@ public class IslandListGUI extends PagedGUI{
     @Override
     public String setGUITitle() {
         return "Islands";
+    }
+
+    public long getLongFromItemStack(ItemStack stack) {
+        NbtCompound compound = stack.getSubNbt("island_data");
+        return compound.getLong("id");
     }
 }

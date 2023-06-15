@@ -1,10 +1,15 @@
 package com.github.tatercertified.carpetskyadditionals.gui;
 
 import eu.pb4.sgui.api.ClickType;
+import eu.pb4.sgui.api.GuiHelpers;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.elements.GuiElementInterface;
 import eu.pb4.sgui.api.gui.SimpleGui;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -115,5 +120,15 @@ public class PagedGUI {
     public String setGUITitle() {
         // Override
         return "";
+    }
+
+    public void addLore(ItemStack stack, List<Text> lore) {
+        NbtCompound display = stack.getOrCreateSubNbt("display");
+        NbtList loreItems = new NbtList();
+        for (Text l : lore) {
+            l = l.copy().styled(GuiHelpers.STYLE_CLEARER);
+            loreItems.add(NbtString.of(Text.Serializer.toJson(l)));
+        }
+        display.put("Lore", loreItems);
     }
 }

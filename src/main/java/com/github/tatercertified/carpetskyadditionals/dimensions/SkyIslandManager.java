@@ -52,19 +52,13 @@ public class SkyIslandManager {
         SkyIslandWorld world = new SkyIslandWorld(IslandNotCorrupterUpper.getDataVersion(), updateCounter(server), name, server, fantasy, server.getOverworld().getRandom().nextLong(), new NbtCompound());
         world.setOwner(creator.getUuid());
         world.setOwnerName(creator.getName().getString());
-        addIsland(world);
+        saveIslands(server);
         generateIslandStructure(world, server);
         world.generateEndPillars();
         BlockPos pos = new BlockPos(8, 63, 9);
         world.getOverworld().setBlockState(pos, Blocks.BEDROCK.getDefaultState());
         world.getOverworld().setSpawnPos(pos, 0.0F);
         joinIsland(world, creator, true);
-    }
-
-    private static void addIsland(SkyIslandWorld island) {
-        // TODO figure out if this is needed
-        //islands.put(island.getName(), island);
-        saveIslands(island.getServer());
     }
 
     public static void removeIsland(SkyIslandWorld island) {
