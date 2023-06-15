@@ -1,8 +1,10 @@
 package com.github.tatercertified.carpetskyadditionals.dimensions;
 
+import com.github.tatercertified.carpetskyadditionals.carpet.CarpetSkyAdditionalsSettings;
 import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
 import com.github.tatercertified.carpetskyadditionals.mixin.SkyIslandCommandInvoker;
 import com.github.tatercertified.carpetskyadditionals.offline_player_utils.OfflinePlayerUtils;
+import com.github.tatercertified.carpetskyadditionals.util.IslandNotCorrupterUpper;
 import net.minecraft.block.Blocks;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
@@ -28,25 +30,26 @@ import java.util.Map;
 
 public class SkyIslandManager {
 
+    public static long the_counter;
     public static Map<String, SkyIslandWorld> islands = new HashMap<>();
     public static Fantasy fantasy;
     public static void loadIslands(MinecraftServer server, NbtList nbt) {
         fantasy = Fantasy.get(server);
 
-        new VanillaWorldOverride("overworld", -1, server, fantasy, server.getOverworld().getSeed(), new NbtCompound());
+        new VanillaWorldOverride(IslandNotCorrupterUpper.getDataVersion(), -1, "overworld", server, fantasy, server.getOverworld().getSeed(), new NbtCompound());
 
         if (nbt != null) {
             for (int i = 0; i < nbt.size(); i++) {
                 NbtCompound compound = nbt.getCompound(i);
 
-                SkyIslandWorld island = new SkyIslandWorld(compound.getString("name"), compound.getInt("max_members"), server, fantasy, compound.getLong("seed"), compound.getCompound("dragon_fight"));
+                SkyIslandWorld island = IslandNotCorrupterUpper.runIslandNotCorrupterUpper(compound, server, fantasy);
                 island.loadNBT(compound);
             }
         }
     }
 
     public static void createIsland(String name, MinecraftServer server, ServerPlayerEntity creator) {
-        SkyIslandWorld world = new SkyIslandWorld(name, 2, server, fantasy, server.getOverworld().getRandom().nextLong(), new NbtCompound());
+        SkyIslandWorld world = new SkyIslandWorld(IslandNotCorrupterUpper.getDataVersion(), updateCounter(server), name, server, fantasy, server.getOverworld().getRandom().nextLong(), new NbtCompound());
         world.setOwner(creator.getUuid());
         world.setOwnerName(creator.getName().getString());
         addIsland(world);
@@ -59,18 +62,27 @@ public class SkyIslandManager {
     }
 
     private static void addIsland(SkyIslandWorld island) {
-        islands.put(island.getName(), island);
+        // TODO figure out if this is needed
+        //islands.put(island.getName(), island);
         saveIslands(island.getServer());
     }
 
     public static void removeIsland(SkyIslandWorld island) {
         removeAllPlayersFromIsland(island);
         islands.remove(island.getName());
+        SkyIslandUtils.removeFromConverter(island);
         saveIslands(island.getServer());
         island.remove();
     }
 
-    //TODO Find a safe alternative to renaming islands
+    public static long updateCounter(MinecraftServer server) {
+        the_counter++;
+        IslandPersistentState state = IslandPersistentState.getServerState(server);
+        state.counter = the_counter;
+        state.markDirty();
+        return the_counter;
+    }
+
     public static void renameIsland(SkyIslandWorld island, String new_name) {
         String old_name = island.getName();
         Map<String, SkyIslandWorld> allIslands = SkyIslandUtils.getAllIslands();
@@ -96,7 +108,7 @@ public class SkyIslandManager {
                 player.sendMessage(Text.literal("Request sent"));
             }
         } else {
-            player.sendMessage(Text.literal("This Island has reached the max number of members: " + island.getMaxMembers()));
+            player.sendMessage(Text.literal("This Island has reached the max number of members: " + CarpetSkyAdditionalsSettings.maxPlayersPerIsland));
         }
     }
 

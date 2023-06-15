@@ -28,12 +28,7 @@ public class IslandMemberListGUI extends PagedGUI{
                 .setCallback(clickType -> {
                     switch (click_function) {
                         case "remove" -> island.removeMember(((ServerPlayerEntity)item));
-                        case "add" -> {
-                            if (!island.tryAddMember(((ServerPlayerEntity)item), true)) {
-                                island.setMaxMembers(island.getMaxMembers() + 1);
-                                island.tryAddMember(((ServerPlayerEntity)item), true);
-                            }
-                        }
+                        case "add" -> island.forceAddMember((ServerPlayerEntity)item);
                     }
                 }));
     }

@@ -9,10 +9,12 @@ import xyz.nucleoid.fantasy.Fantasy;
 public class VanillaWorldOverride extends SkyIslandWorld{
 
     private final MinecraftServer server;
-    public VanillaWorldOverride(String name, int max_members, MinecraftServer server, Fantasy fantasy, Long seed, NbtCompound dragon_fight) {
-        super(name, max_members, server, fantasy, seed, dragon_fight);
+
+    public VanillaWorldOverride(int data_version, long id, String name, MinecraftServer server, Fantasy fantasy, long seed, NbtCompound dragon_fight) {
+        super(data_version, id, name, server, fantasy, seed, dragon_fight);
         this.server = server;
     }
+
 
     @Override
     public ServerWorld getOverworld() {

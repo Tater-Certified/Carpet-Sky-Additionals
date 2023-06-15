@@ -22,8 +22,7 @@ public class TextEditorGUI {
                         if (island == null) {
                             SkyIslandManager.createIsland(output[0], player.getServer(), player);
                         } else {
-                            // TODO Find a safe way to rename Islands
-                            //SkyIslandManager.renameIsland(island, output[0]);
+                            SkyIslandManager.renameIsland(island, output[0]);
                         }
                     } else {
                         player.sendMessage(Text.literal("That name is already taken, try another name"));

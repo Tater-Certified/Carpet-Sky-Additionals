@@ -42,6 +42,7 @@ public class CarpetSkyAdditionals implements CarpetExtension {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 
             IslandPersistentState state = IslandPersistentState.getServerState(server);
+            SkyIslandManager.the_counter = state.counter;
             SkyIslandManager.loadIslands(server, state.islands);
             state.markDirty();
         });
@@ -54,6 +55,7 @@ public class CarpetSkyAdditionals implements CarpetExtension {
             }
 
             IslandPersistentState state = IslandPersistentState.getServerState(server);
+            state.counter = SkyIslandManager.the_counter;
             state.islands = nbt_list;
             state.markDirty();
         });

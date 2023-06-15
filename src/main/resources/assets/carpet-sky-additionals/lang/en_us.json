@@ -1,5 +1,6 @@
 {
   "carpet.rule.sneakingGrowsPlants.desc": "Each time a player sneaks, it will attempt to fertilize a random block around the player. If the block can be fertilized, it will be.",
   "carpet.rule.sneakGrowingProbability.desc": "The chance that the bonemeal is applied for sneakingGrowsPlants. It represents 1/n chance, and it must be a positive, non-zero integer.",
-  "carpet.rule.sneakGrowingRadius.desc": "The radius in blocks that is randomly accessed. This area is a square centered on the player. It must be a positive, non-zero integer."
+  "carpet.rule.sneakGrowingRadius.desc": "The radius in blocks that is randomly accessed. This area is a square centered on the player. It must be a positive, non-zero integer.",
+  "carpet.rule.maxPlayersPerIsland.desc": "The maximum amount of members per Sky Island. It must be a positive, non-zero integer."
 }

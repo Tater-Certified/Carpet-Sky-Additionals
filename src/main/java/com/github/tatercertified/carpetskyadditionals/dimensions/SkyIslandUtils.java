@@ -13,6 +13,20 @@ import java.util.*;
 
 public class SkyIslandUtils {
 
+    public static Map<Long, SkyIslandWorld> converter = new HashMap<>();
+
+    public static void addToConverter(SkyIslandWorld island) {
+        converter.put(island.getIdentification(), island);
+    }
+
+    public static void removeFromConverter(SkyIslandWorld island) {
+        converter.remove(island.getIdentification());
+    }
+
+    public static SkyIslandWorld getSkyIsland(long id) {
+        return converter.get(id);
+    }
+
     public static SkyIslandWorld getSkyIsland(String name) {
         return getAllIslands().get(name);
     }
@@ -21,10 +35,14 @@ public class SkyIslandUtils {
         Identifier id = island.getRegistryKey().getValue();
         if (Objects.equals(id.getNamespace(), CarpetSkyAdditionals.MOD_ID)) {
             String name = id.getPath().replace("-nether", "").replace("-end", "");
-            return getSkyIsland(name);
+            return getSkyIsland(getIdFromHex(name));
         } else {
             return getVanillaIsland();
         }
+    }
+
+    public static long getIdFromHex(String hex) {
+        return Long.parseLong(hex, 16);
     }
 
     public static RegistryKey<World> getDimensionFromString(String dimension) {
@@ -40,9 +58,9 @@ public class SkyIslandUtils {
             }
         }
         String name = dimension.replace("-nether", "").replace("-end", "");
-        SkyIslandWorld island = getSkyIsland(name);
+        SkyIslandWorld island = getSkyIsland(getIdFromHex(name));
 
-        if (dimension.equals(name)) {
+        if (dimension.equals(String.valueOf(island.getIdentification()))) {
             return island.getOverworld().getRegistryKey();
         } else if (dimension.contains("-nether")) {
             return island.getNether().getRegistryKey();

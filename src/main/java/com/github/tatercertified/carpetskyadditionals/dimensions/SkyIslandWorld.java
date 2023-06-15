@@ -1,6 +1,7 @@
 package com.github.tatercertified.carpetskyadditionals.dimensions;
 
 import com.github.tatercertified.carpetskyadditionals.CarpetSkyAdditionals;
+import com.github.tatercertified.carpetskyadditionals.carpet.CarpetSkyAdditionalsSettings;
 import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
 import com.github.tatercertified.carpetskyadditionals.mixin.EnderDragonFightInvoker;
 import com.github.tatercertified.carpetskyadditionals.offline_player_utils.OfflinePlayerUtils;
@@ -15,6 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameMode;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionTypes;
 import net.minecraft.world.gen.feature.EndSpikeFeature;
@@ -27,8 +29,9 @@ import xyz.nucleoid.fantasy.RuntimeWorldHandle;
 import java.util.*;
 
 public class SkyIslandWorld implements EnderDragonFightInvoker{
+    private final long identification;
+    private final int data_version;
     private String name;
-    private int max_members;
     private UUID owner;
     private String owner_name;
     private RuntimeWorldHandle overworld_handle;
@@ -40,10 +43,12 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
     private final long seed;
     private NbtCompound dragon_fight;
 
-    public SkyIslandWorld(String name, int max_members, MinecraftServer server, Fantasy fantasy, long seed, NbtCompound dragon_fight) {
+    public SkyIslandWorld(int data_version, long id, String name, MinecraftServer server, Fantasy fantasy, long seed, NbtCompound dragon_fight) {
+        this.data_version = data_version;
+        this.identification = id;
         this.name = name;
         SkyIslandManager.islands.put(this.getName(), this);
-        this.max_members = max_members;
+        SkyIslandUtils.addToConverter(this);
         this.server = server;
         this.dragon_fight = dragon_fight;
         this.seed = seed;
@@ -57,9 +62,12 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
                 .setDifficulty(Difficulty.HARD)
                 .setSeed(seed)
                 .setShouldTickTime(true)
+                .setGameRule(GameRules.DO_WEATHER_CYCLE, true)
+                .setGameRule(GameRules.DO_INSOMNIA, true)
+                .setGameRule(GameRules.DO_TRADER_SPAWNING, true)
                 .setGenerator(server.getOverworld().getChunkManager().getChunkGenerator());
 
-        overworld_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, name), worldConfig);
+        overworld_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, Long.toHexString(identification)), worldConfig);
         getOverworld().setSpawnPos(new BlockPos(8, 64, 9), 0.0F);
 
         // Nether
@@ -71,7 +79,7 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
                 .setShouldTickTime(true)
                 .setGenerator(Objects.requireNonNull(server.getWorld(World.NETHER)).getChunkManager().getChunkGenerator());
 
-        nether_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, name + "-nether"), worldConfig1);
+        nether_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, Long.toHexString(identification) + "-nether"), worldConfig1);
 
         // End
 
@@ -82,7 +90,7 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
                 .setShouldTickTime(true)
                 .setGenerator(server.getWorld(World.END).getChunkManager().getChunkGenerator());
 
-        end_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, name + "-end"), worldConfig2);
+        end_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, Long.toHexString(identification) + "-end"), worldConfig2);
     }
 
     public ServerWorld getOverworld() {
@@ -95,6 +103,14 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
 
     public ServerWorld getEnd() {
         return end_handle.asWorld();
+    }
+
+    public long getIdentification() {
+        return this.identification;
+    }
+
+    private int getDataVersion() {
+        return this.data_version;
     }
 
     public String getName() {
@@ -121,14 +137,6 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
         this.owner = owner;
     }
 
-    public int getMaxMembers() {
-        return max_members;
-    }
-
-    public void setMaxMembers(int new_max) {
-        this.max_members = new_max;
-    }
-
     public MinecraftServer getServer() {
         return this.server;
     }
@@ -142,7 +150,7 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
     }
 
     public boolean tryAddMember(ServerPlayerEntity player, boolean creation) {
-        if (this.members.size() < this.max_members) {
+        if (this.members.size() < CarpetSkyAdditionalsSettings.maxPlayersPerIsland) {
             if (creation) {
                 acceptJoinRequest(player.getUuid(), true);
                 SkyIslandUtils.teleportToIsland(player, this.getOverworld(), GameMode.SURVIVAL);
@@ -153,6 +161,12 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
             return true;
         }
         return false;
+    }
+
+    public void forceAddMember(ServerPlayerEntity player) {
+        UUID id = player.getUuid();
+        this.invite_requests.remove(id);
+        this.members.add(id);
     }
 
     public void removeMember(ServerPlayerEntity removed) {
@@ -257,7 +271,8 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
     public NbtCompound getNBT() {
 
         NbtCompound compound = new NbtCompound();
-        NbtInt max_members = NbtInt.of(getMaxMembers());
+        NbtInt data_ver = NbtInt.of(getDataVersion());
+        NbtLong id = NbtLong.of(getIdentification());
         NbtString owner = NbtString.of(getOwner().toString());
         NbtString owner_name = NbtString.of(getOwnerName());
         NbtString name = NbtString.of(getName());
@@ -269,9 +284,10 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
             members_nbt.add(member_id);
         }
 
+        compound.put("id", id);
+        compound.put("data_version", data_ver);
         compound.put("name", name);
         compound.put("seed", seed);
-        compound.put("max_members", max_members);
         compound.put("owner", owner);
         compound.put("owner-name", owner_name);
         compound.put("members", members_nbt);

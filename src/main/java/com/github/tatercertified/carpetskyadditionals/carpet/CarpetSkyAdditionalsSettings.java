@@ -24,4 +24,10 @@ public class CarpetSkyAdditionalsSettings {
     )
     public static int sneakGrowingRadius = 2;
 
+    @Rule(
+            categories = {RuleCategory.SURVIVAL, "sky-island-tweaks"},
+            strict = false,
+            validators = CSAValidators.NonZeroPositive.class
+    )
+    public static int maxPlayersPerIsland = 2;
 }
