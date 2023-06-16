@@ -47,7 +47,6 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
         this.data_version = data_version;
         this.identification = id;
         this.name = name;
-        SkyIslandManager.islands.put(this.getName(), this);
         SkyIslandUtils.addToConverter(this);
         this.server = server;
         this.dragon_fight = dragon_fight;
@@ -175,6 +174,10 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
 
     private void setMembers(List<UUID> members_list) {
         this.members = members_list;
+    }
+
+    public List<UUID> getMembersUUID() {
+        return members;
     }
 
     public Map<String, ServerPlayerEntity> getMembers() {

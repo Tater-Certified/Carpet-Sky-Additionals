@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class IslandListGUI extends PagedGUI{
     private final SkyIslandWorld current;
-    public IslandListGUI(ServerPlayerEntity user, SimpleGui parent_gui, Map<String, ?> map, int item_amount, String action_type) {
+    public IslandListGUI(ServerPlayerEntity user, SimpleGui parent_gui, Map<?, ?> map, int item_amount, String action_type) {
         super(user, parent_gui, map, item_amount, action_type);
         current = ((EntityIslandDataInterface)user).getCurrentIsland();
         // Inserted Ampflower assistance here

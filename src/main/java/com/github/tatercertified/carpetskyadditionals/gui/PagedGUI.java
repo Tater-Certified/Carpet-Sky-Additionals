@@ -22,10 +22,10 @@ import java.util.Map;
 public class PagedGUI {
     private final ServerPlayerEntity user;
     private final SimpleGui parent_gui;
-    private final Map<String, ?> map;
+    private final Map<?, ?> map;
     private final int item_amount;
     private final String action_type;
-    public PagedGUI(ServerPlayerEntity user, SimpleGui parent_gui, Map<String, ?> map, int item_amount, String action_type) {
+    public PagedGUI(ServerPlayerEntity user, SimpleGui parent_gui, Map<?, ?> map, int item_amount, String action_type) {
         this.user = user;
         this.parent_gui = parent_gui;
         this.map = map;
@@ -59,7 +59,7 @@ public class PagedGUI {
         pages.get(0).open();
     }
 
-    private List<List<?>> breakMapIntoChunks(Map<String, ?> map, int chunkSize) {
+    private List<List<?>> breakMapIntoChunks(Map<?, ?> map, int chunkSize) {
         List<List<?>> chunks = new ArrayList<>();
         List<?> values = new ArrayList<>(map.values());
 

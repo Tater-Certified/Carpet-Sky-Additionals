@@ -27,10 +27,6 @@ public class SkyIslandUtils {
         return converter.get(id);
     }
 
-    public static SkyIslandWorld getSkyIsland(String name) {
-        return getAllIslands().get(name);
-    }
-
     public static SkyIslandWorld getSkyIsland(ServerWorld island) {
         Identifier id = island.getRegistryKey().getValue();
         if (Objects.equals(id.getNamespace(), CarpetSkyAdditionals.MOD_ID)) {
@@ -75,33 +71,33 @@ public class SkyIslandUtils {
     }
 
     public static SkyIslandWorld getVanillaIsland() {
-        return SkyIslandManager.islands.get("overworld");
+        return getSkyIsland(-1);
     }
 
-    public static Map<String, SkyIslandWorld> getAllIslands() {
-        return SkyIslandManager.islands;
+    public static Map<Long, SkyIslandWorld> getAllIslands() {
+        return converter;
     }
 
-    public static Map<String, SkyIslandWorld> getAllIslandsWithoutVanilla() {
-        Map<String, SkyIslandWorld> map = new HashMap<>(Map.copyOf(getAllIslands()));
-        map.remove("overworld");
+    public static Map<Long, SkyIslandWorld> getAllIslandsWithoutVanilla() {
+        Map<Long, SkyIslandWorld> map = new HashMap<>(Map.copyOf(getAllIslands()));
+        map.remove(-1L);
         return map;
     }
 
-    public static Map<String, SkyIslandWorld> getAllUsersIslands(ServerPlayerEntity user) {
+    public static Map<Long, SkyIslandWorld> getAllUsersIslands(ServerPlayerEntity user) {
         return verifyIslandList(((PlayerIslandDataInterface) user).getHomeIslands());
     }
 
-    public static Map<String, SkyIslandWorld> getAllNotUsersIslands(ServerPlayerEntity user) {
-        Map<String, SkyIslandWorld> map = new HashMap<>(Map.copyOf(getAllIslandsWithoutVanilla()));
-        Map<String, SkyIslandWorld> userIslands = getAllUsersIslands(user);
+    public static Map<Long, SkyIslandWorld> getAllNotUsersIslands(ServerPlayerEntity user) {
+        Map<Long, SkyIslandWorld> map = new HashMap<>(Map.copyOf(getAllIslandsWithoutVanilla()));
+        Map<Long, SkyIslandWorld> userIslands = getAllUsersIslands(user);
 
         map.entrySet().removeIf(entry -> userIslands.containsValue(entry.getValue()));
 
         return map;
     }
 
-    public static Map<String, SkyIslandWorld> getAllOwnersIslands(ServerPlayerEntity owner) {
+    public static Map<Long, SkyIslandWorld> getAllOwnersIslands(ServerPlayerEntity owner) {
         List<SkyIslandWorld> owned = new ArrayList<>();
         for (SkyIslandWorld island : getAllUsersIslands(owner).values()) {
             if (Objects.equals(island.getOwner(), owner.getUuid())) {
@@ -111,7 +107,7 @@ public class SkyIslandUtils {
         return listToMap(owned);
     }
 
-    private static Map<String, SkyIslandWorld> verifyIslandList(List<SkyIslandWorld> islands) {
+    private static Map<Long, SkyIslandWorld> verifyIslandList(List<SkyIslandWorld> islands) {
         if (getAllIslands().values().containsAll(islands)) {
             return listToMap(islands);
         } else {
@@ -121,15 +117,11 @@ public class SkyIslandUtils {
         return listToMap(islands);
     }
 
-    public static boolean islandAvailable(String name) {
-        return !getAllIslands().containsKey(name);
-    }
-
-    private static Map<String, SkyIslandWorld> listToMap(List<SkyIslandWorld> islands) {
-        Map<String, SkyIslandWorld> map = new HashMap<>();
+    private static Map<Long, SkyIslandWorld> listToMap(List<SkyIslandWorld> islands) {
+        Map<Long, SkyIslandWorld> map = new HashMap<>();
 
         for (SkyIslandWorld island : islands) {
-            map.put(island.getName(), island);
+            map.put(island.getIdentification(), island);
         }
 
         return map;

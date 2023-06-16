@@ -24,14 +24,12 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import xyz.nucleoid.fantasy.Fantasy;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class SkyIslandManager {
 
     public static long the_counter;
-    public static Map<String, SkyIslandWorld> islands = new HashMap<>();
     public static Fantasy fantasy;
     public static void loadIslands(MinecraftServer server, NbtList nbt) {
         fantasy = Fantasy.get(server);
@@ -45,6 +43,9 @@ public class SkyIslandManager {
                 SkyIslandWorld island = IslandNotCorrupterUpper.runIslandNotCorrupterUpper(compound, server, fantasy);
                 island.loadNBT(compound);
             }
+        }
+        if (IslandNotCorrupterUpper.should_update_player_data) {
+            IslandNotCorrupterUpper.migratePlayerData(server);
         }
     }
 
@@ -63,7 +64,6 @@ public class SkyIslandManager {
 
     public static void removeIsland(SkyIslandWorld island) {
         removeAllPlayersFromIsland(island);
-        islands.remove(island.getName());
         SkyIslandUtils.removeFromConverter(island);
         saveIslands(island.getServer());
         island.remove();
@@ -78,11 +78,7 @@ public class SkyIslandManager {
     }
 
     public static void renameIsland(SkyIslandWorld island, String new_name) {
-        String old_name = island.getName();
-        Map<String, SkyIslandWorld> allIslands = SkyIslandUtils.getAllIslands();
-        allIslands.remove(old_name);
         island.setName(new_name);
-        allIslands.put(new_name, island);
         saveIslands(island.getServer());
     }
 

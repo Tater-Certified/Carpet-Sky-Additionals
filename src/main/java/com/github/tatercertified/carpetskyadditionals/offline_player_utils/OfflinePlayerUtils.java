@@ -136,7 +136,7 @@ public class OfflinePlayerUtils {
         for (int i = 0; i < list.size(); i++) {
             NbtCompound compound = list.getCompound(i);
             PlayerSkyIslandWorld p_island;
-            SkyIslandWorld home = SkyIslandUtils.getSkyIsland(compound.getString("island-name"));
+            SkyIslandWorld home = SkyIslandUtils.getSkyIsland(compound.getLong("island-id"));
             if (home != null) {
                 p_island = new PlayerSkyIslandWorld(home);
                 p_island.fromNbt(compound);
