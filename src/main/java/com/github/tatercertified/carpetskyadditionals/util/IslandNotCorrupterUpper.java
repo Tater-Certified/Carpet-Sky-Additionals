@@ -97,9 +97,10 @@ public class IslandNotCorrupterUpper {
                             if (compound.contains("island-name")) {
                                 SkyIslandWorld island_world = legacyIslandSearch(compound.getString("island-name"));
                                 compound.putLong("island-id", island_world.getIdentification());
-                                compound.remove("island=name");
+                                compound.remove("island-name");
                             }
                         }
+                        OfflinePlayerUtils.savePlayerData(player.get(), nbt, server);
                         migrated.add(id);
                     }
                 }
