@@ -19,14 +19,14 @@ public class EmergencyCommand {
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("islands-emergency")
                 .requires(source -> source.hasPermissionLevel(4))
-                .then(literal("add-home"))
+                .then(literal("add-home")
                 .then(argument("uuid", UuidArgumentType.uuid())
                         .then(argument("id", LongArgumentType.longArg())
                                 .executes(context -> {
                                     addHome(LongArgumentType.getLong(context, "id"), UuidArgumentType.getUuid(context, "uuid"));
                                     return 0;
                                 })
-                ))));
+                )))));
     }
 
     public static void addHome(long island_id, UUID uuid) {
