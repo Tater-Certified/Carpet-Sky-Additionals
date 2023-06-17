@@ -5,6 +5,7 @@ import carpet.CarpetServer;
 import com.github.tatercertified.carpetskyadditionals.carpet.CarpetSkyAdditionalsSettings;
 import com.github.tatercertified.carpetskyadditionals.command.CSAAdminCommand;
 import com.github.tatercertified.carpetskyadditionals.command.CSACommand;
+import com.github.tatercertified.carpetskyadditionals.command.EmergencyCommand;
 import com.github.tatercertified.carpetskyadditionals.dimensions.IslandPersistentState;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandManager;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandUtils;
@@ -38,6 +39,7 @@ public class CarpetSkyAdditionals implements CarpetExtension {
 
         CSACommand.register();
         CSAAdminCommand.registerAdminCommand();
+        EmergencyCommand.register();
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 
