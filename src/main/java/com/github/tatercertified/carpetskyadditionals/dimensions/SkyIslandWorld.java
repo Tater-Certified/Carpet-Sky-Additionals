@@ -5,26 +5,36 @@ import com.github.tatercertified.carpetskyadditionals.carpet.CarpetSkyAdditional
 import com.github.tatercertified.carpetskyadditionals.interfaces.PlayerIslandDataInterface;
 import com.github.tatercertified.carpetskyadditionals.mixin.EnderDragonFightInvoker;
 import com.github.tatercertified.carpetskyadditionals.offline_player_utils.OfflinePlayerUtils;
+import com.github.tatercertified.carpetskyadditionals.util.DragonNbtConverter;
+import com.github.tatercertified.carpetskyadditionals.util.VanillaRuntimeWorld;
+import com.github.tatercertified.carpetskyadditionals.util.WanderingTraderManagerV2;
 import com.google.common.collect.ImmutableList;
+import net.minecraft.entity.boss.dragon.EnderDragonFight;
 import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.village.ZombieSiegeManager;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.source.BiomeAccess;
 import net.minecraft.world.dimension.DimensionTypes;
 import net.minecraft.world.gen.feature.EndSpikeFeature;
 import net.minecraft.world.gen.feature.EndSpikeFeatureConfig;
 import net.minecraft.world.gen.feature.Feature;
-import xyz.nucleoid.fantasy.Fantasy;
-import xyz.nucleoid.fantasy.RuntimeWorldConfig;
-import xyz.nucleoid.fantasy.RuntimeWorldHandle;
+import net.minecraft.world.spawner.CatSpawner;
+import net.minecraft.world.spawner.PatrolSpawner;
+import net.minecraft.world.spawner.PhantomSpawner;
+import xyz.nucleoid.fantasy.*;
+import xyz.nucleoid.fantasy.mixin.MinecraftServerAccess;
+import xyz.nucleoid.fantasy.util.VoidWorldProgressListener;
 
 import java.util.*;
 
@@ -41,9 +51,10 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
     private final List<UUID> invite_requests = new ArrayList<>();
     private final MinecraftServer server;
     private final long seed;
-    private NbtCompound dragon_fight;
+    private final EnderDragonFight.Data dragon_fight;
+    private final WanderingTraderManagerV2 traderManager;
 
-    public SkyIslandWorld(int data_version, long id, String name, MinecraftServer server, Fantasy fantasy, long seed, NbtCompound dragon_fight) {
+    public SkyIslandWorld(int data_version, long id, String name, MinecraftServer server, Fantasy fantasy, long seed, EnderDragonFight.Data dragon_fight, NbtCompound wanderingTrader) {
         this.data_version = data_version;
         this.identification = id;
         this.name = name;
@@ -51,6 +62,7 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
         this.server = server;
         this.dragon_fight = dragon_fight;
         this.seed = seed;
+        this.traderManager = new WanderingTraderManagerV2(wanderingTrader);
         createAllWorlds(server, fantasy);
     }
     public void createAllWorlds(MinecraftServer server, Fantasy fantasy) {
@@ -61,9 +73,24 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
                 .setDifficulty(Difficulty.HARD)
                 .setSeed(seed)
                 .setShouldTickTime(true)
+                .setSunny(-1)
                 .setGameRule(GameRules.DO_WEATHER_CYCLE, true)
                 .setGameRule(GameRules.DO_INSOMNIA, true)
                 .setGameRule(GameRules.DO_TRADER_SPAWNING, true)
+                .setGameRule(GameRules.PLAYERS_SLEEPING_PERCENTAGE, 0)
+                .setWorldConstructor((server1, registryKey, config, style) -> new VanillaRuntimeWorld(
+                        server1,
+                        Util.getMainWorkerExecutor(),
+                        ((MinecraftServerAccess) server1).getSession(),
+                        new RuntimeWorldProperties(server1.getSaveProperties(), config),
+                        registryKey,
+                        config.createDimensionOptions(server1),
+                        VoidWorldProgressListener.INSTANCE,
+                        false,
+                        BiomeAccess.hashSeed(config.getSeed()),
+                        ImmutableList.of(new PhantomSpawner(), new PatrolSpawner(), new CatSpawner(), new ZombieSiegeManager(), traderManager),
+                        config.shouldTickTime(),
+                        null, style))
                 .setGenerator(server.getOverworld().getChunkManager().getChunkGenerator());
 
         overworld_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, Long.toHexString(identification)), worldConfig);
@@ -76,6 +103,19 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
                 .setDifficulty(Difficulty.HARD)
                 .setSeed(seed)
                 .setShouldTickTime(true)
+                .setWorldConstructor((server1, registryKey, config, style) -> new VanillaRuntimeWorld(
+                        server1,
+                        Util.getMainWorkerExecutor(),
+                        ((MinecraftServerAccess) server1).getSession(),
+                        new RuntimeWorldProperties(server1.getSaveProperties(), config),
+                        registryKey,
+                        config.createDimensionOptions(server1),
+                        VoidWorldProgressListener.INSTANCE,
+                        false,
+                        BiomeAccess.hashSeed(config.getSeed()),
+                        ImmutableList.of(new ZombieSiegeManager()),
+                        config.shouldTickTime(),
+                        null, style))
                 .setGenerator(Objects.requireNonNull(server.getWorld(World.NETHER)).getChunkManager().getChunkGenerator());
 
         nether_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, Long.toHexString(identification) + "-nether"), worldConfig1);
@@ -87,6 +127,19 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
                 .setDifficulty(Difficulty.HARD)
                 .setSeed(seed)
                 .setShouldTickTime(true)
+                .setWorldConstructor((server1, registryKey, config, style) -> new VanillaRuntimeWorld(
+                        server1,
+                        Util.getMainWorkerExecutor(),
+                        ((MinecraftServerAccess) server1).getSession(),
+                        new RuntimeWorldProperties(server1.getSaveProperties(), config),
+                        registryKey,
+                        config.createDimensionOptions(server1),
+                        VoidWorldProgressListener.INSTANCE,
+                        false,
+                        BiomeAccess.hashSeed(config.getSeed()),
+                        ImmutableList.of(new ZombieSiegeManager()),
+                        config.shouldTickTime(),
+                        null, style))
                 .setGenerator(server.getWorld(World.END).getChunkManager().getChunkGenerator());
 
         end_handle = fantasy.getOrOpenPersistentWorld(new Identifier(CarpetSkyAdditionals.MOD_ID, Long.toHexString(identification) + "-end"), worldConfig2);
@@ -144,7 +197,7 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
         return seed;
     }
 
-    public NbtCompound getDragonFight() {
+    public EnderDragonFight.Data getDragonFight() {
         return dragon_fight;
     }
 
@@ -250,7 +303,7 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
     }
 
     public void generateEndPillars() {
-        invokeLoadChunks();
+        invokeAreChunksLoaded();
 
         List<EndSpikeFeature.Spike> list = EndSpikeFeature.getSpikes(this.getEnd());
         for (EndSpikeFeature.Spike spike : list) {
@@ -294,8 +347,8 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
         compound.put("owner", owner);
         compound.put("owner-name", owner_name);
         compound.put("members", members_nbt);
-        dragon_fight = getEnd().getEnderDragonFight().toNbt();
-        compound.put("dragon_fight", dragon_fight);
+        compound.put("dragon_fight", DragonNbtConverter.toNBT(getEnd().getEnderDragonFight().toData()));
+        compound.put("trader", traderManager.toNBT());
 
         return compound;
     }
@@ -314,7 +367,7 @@ public class SkyIslandWorld implements EnderDragonFightInvoker{
     }
 
     @Override
-    public boolean invokeLoadChunks() {
+    public boolean invokeAreChunksLoaded() {
         return true;
     }
 }

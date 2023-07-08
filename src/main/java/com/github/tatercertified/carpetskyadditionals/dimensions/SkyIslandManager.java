@@ -6,6 +6,7 @@ import com.github.tatercertified.carpetskyadditionals.mixin.SkyIslandCommandInvo
 import com.github.tatercertified.carpetskyadditionals.offline_player_utils.OfflinePlayerUtils;
 import com.github.tatercertified.carpetskyadditionals.util.IslandNotCorrupterUpper;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.boss.dragon.EnderDragonFight;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.Registry;
@@ -26,6 +27,7 @@ import xyz.nucleoid.fantasy.Fantasy;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class SkyIslandManager {
 
@@ -34,7 +36,7 @@ public class SkyIslandManager {
     public static void loadIslands(MinecraftServer server, NbtList nbt) {
         fantasy = Fantasy.get(server);
 
-        new VanillaWorldOverride(IslandNotCorrupterUpper.getDataVersion(), -1, "overworld", server, fantasy, server.getOverworld().getSeed(), new NbtCompound());
+        new VanillaWorldOverride(IslandNotCorrupterUpper.getDataVersion(), -1, "overworld", server, fantasy, server.getOverworld().getSeed(), new EnderDragonFight.Data(false, false, false, false, Optional.empty(), Optional.empty(), Optional.empty()));
 
         if (nbt != null) {
             for (int i = 0; i < nbt.size(); i++) {
@@ -50,7 +52,7 @@ public class SkyIslandManager {
     }
 
     public static void createIsland(String name, MinecraftServer server, ServerPlayerEntity creator) {
-        SkyIslandWorld world = new SkyIslandWorld(IslandNotCorrupterUpper.getDataVersion(), updateCounter(server), name, server, fantasy, server.getOverworld().getRandom().nextLong(), new NbtCompound());
+        SkyIslandWorld world = new SkyIslandWorld(IslandNotCorrupterUpper.getDataVersion(), updateCounter(server), name, server, fantasy, server.getOverworld().getRandom().nextLong(), new EnderDragonFight.Data(true, false, false, false, Optional.empty(), Optional.empty(), Optional.empty()), new NbtCompound());
         world.setOwner(creator.getUuid());
         world.setOwnerName(creator.getName().getString());
         saveIslands(server);
@@ -159,7 +161,7 @@ public class SkyIslandManager {
     }
 
     private static boolean isOnIsland(ServerPlayerEntity player, SkyIslandWorld island) {
-        ServerWorld world = player.getWorld();
+        ServerWorld world = (ServerWorld) player.getWorld();
         return world == island.getOverworld() || world == island.getNether() || world == island.getEnd();
     }
 }

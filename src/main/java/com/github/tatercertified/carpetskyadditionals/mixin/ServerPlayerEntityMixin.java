@@ -17,10 +17,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -38,7 +35,10 @@ public abstract class ServerPlayerEntityMixin implements PlayerIslandDataInterfa
 
     @Shadow private float spawnAngle;
     @Shadow private boolean spawnForced;
+
+    @Unique
     private List<PlayerSkyIslandWorld> homes = new ArrayList<>();
+    @Unique
     private final ThreadLocal<PlayerSkyIslandWorld> p_island = new ThreadLocal<>();
 
     @Inject(method = "readCustomDataFromNbt", at = @At("HEAD"))

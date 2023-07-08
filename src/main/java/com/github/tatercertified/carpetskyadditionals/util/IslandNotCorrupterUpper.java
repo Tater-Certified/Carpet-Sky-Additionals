@@ -33,7 +33,7 @@ public class IslandNotCorrupterUpper {
             should_update_player_data = true;
         }
 
-        return new SkyIslandWorld(data_version, data.getLong("id"), data.getString("name"), server, fantasy, data.getLong("seed"), data.getCompound("dragon_fight"));
+        return new SkyIslandWorld(data_version, data.getLong("id"), data.getString("name"), server, fantasy, data.getLong("seed"), DragonNbtConverter.fromNBT(data.getCompound("dragon_fight")), data.getCompound("trader"));
     }
 
     public static int getDataVersion() {

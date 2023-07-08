@@ -1,5 +1,6 @@
 package com.github.tatercertified.carpetskyadditionals.dimensions;
 
+import net.minecraft.entity.boss.dragon.EnderDragonFight;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
@@ -10,8 +11,8 @@ public class VanillaWorldOverride extends SkyIslandWorld{
 
     private final MinecraftServer server;
 
-    public VanillaWorldOverride(int data_version, long id, String name, MinecraftServer server, Fantasy fantasy, long seed, NbtCompound dragon_fight) {
-        super(data_version, id, name, server, fantasy, seed, dragon_fight);
+    public VanillaWorldOverride(int data_version, long id, String name, MinecraftServer server, Fantasy fantasy, long seed, EnderDragonFight.Data dragon_fight) {
+        super(data_version, id, name, server, fantasy, seed, dragon_fight, new NbtCompound());
         this.server = server;
     }
 

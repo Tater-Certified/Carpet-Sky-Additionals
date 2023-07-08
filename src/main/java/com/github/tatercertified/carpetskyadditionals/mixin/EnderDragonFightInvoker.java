@@ -7,5 +7,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(EnderDragonFight.class)
 public interface EnderDragonFightInvoker {
     @Invoker
-    abstract boolean invokeLoadChunks();
+    abstract boolean invokeAreChunksLoaded();
 }

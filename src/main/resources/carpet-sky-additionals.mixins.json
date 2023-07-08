@@ -10,6 +10,7 @@
     "EntityMixin",
     "JankCarpetExtensionCrashReportMixin",
     "PlayerManagerMixin",
+    "RuntimeWorldPropertiesAccessor",
     "SeedCommandMixin",
     "ServerPlayerEntityMixin",
     "ServerWorldMixin",

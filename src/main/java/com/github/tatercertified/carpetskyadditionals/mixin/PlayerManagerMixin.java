@@ -10,6 +10,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -17,11 +18,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
+    @Unique
     private final ThreadLocal<PlayerSkyIslandWorld> p_island = new ThreadLocal<>();
 
     @Inject(method = "respawnPlayer", at = @At("HEAD"))
     private void respawnPlayer(ServerPlayerEntity player, boolean alive, CallbackInfoReturnable<ServerPlayerEntity> cir) {
-        p_island.set(((PlayerIslandDataInterface)player).getPIsland(player.getWorld()));
+        p_island.set(((PlayerIslandDataInterface)player).getPIsland((ServerWorld) player.getWorld()));
     }
 
     @Redirect(method = "respawnPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;getSpawnPointPosition()Lnet/minecraft/util/math/BlockPos;"))
