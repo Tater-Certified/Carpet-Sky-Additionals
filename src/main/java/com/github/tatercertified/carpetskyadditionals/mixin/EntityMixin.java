@@ -3,7 +3,6 @@ package com.github.tatercertified.carpetskyadditionals.mixin;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandUtils;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandWorld;
 import com.github.tatercertified.carpetskyadditionals.interfaces.EntityIslandDataInterface;
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
