@@ -13,6 +13,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class DragonNbtConverter {
+    /**
+     * Converts Data to NBT
+     * @param fight_data Data from EnderDragonFight
+     * @return Data as NbtCompound
+     */
     public static NbtCompound toNBT(EnderDragonFight.Data fight_data) {
         NbtCompound nbt = new NbtCompound();
         nbt.putBoolean("NeedsStateScanning", fight_data.needsStateScanning());
@@ -31,15 +36,29 @@ public class DragonNbtConverter {
         return nbt;
     }
 
+    /**
+     * Converts NbtCompound to Data
+     * @param nbt NbtCompound of EnderDragonFight
+     * @return NbtCompound as Data
+     */
     public static EnderDragonFight.Data fromNBT(NbtCompound nbt) {
         boolean needsStateScanning = nbt.getBoolean("NeedsStateScanning");
         boolean dragonKilled = nbt.getBoolean("DragonKilled");
         boolean previouslyKilled = nbt.getBoolean("PreviouslyKilled");
         boolean isRespawning = nbt.getBoolean("IsRespawning");
-        UUID dragon = nbt.getUuid("Dragon");
-        BlockPos exitPortalLocation = nBTToBlockPos(nbt.getCompound("ExitPortalLocation"));
-        List<Integer> gateways = nBTToIntList(nbt.getList("Gateways", NbtElement.INT_TYPE));
-        return new EnderDragonFight.Data(needsStateScanning, dragonKilled, previouslyKilled, isRespawning, Optional.ofNullable(dragon), Optional.of(exitPortalLocation), Optional.of(gateways));
+        Optional<UUID> dragon = Optional.empty();
+        if (nbt.contains("Dragon")) {
+            dragon = Optional.ofNullable(nbt.getUuid("Dragon"));
+        }
+        Optional<BlockPos> exitPortalLocation = Optional.empty();
+        if (nbt.contains("ExitPortalLocation")) {
+            exitPortalLocation = Optional.of(nBTToBlockPos(nbt.getCompound("ExitPortalLocation")));
+        }
+        Optional<List<Integer>> gateways = Optional.empty();
+        if (nbt.contains("Gateways")) {
+            gateways = Optional.of(nBTToIntList(nbt.getList("Gateways", NbtElement.INT_TYPE)));
+        }
+        return new EnderDragonFight.Data(needsStateScanning, dragonKilled, previouslyKilled, isRespawning, dragon, exitPortalLocation, gateways);
     }
 
     private static NbtCompound blockPosToNBT(BlockPos pos) {

@@ -3,6 +3,7 @@ package com.github.tatercertified.carpetskyadditionals.mixin;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandUtils;
 import com.github.tatercertified.carpetskyadditionals.dimensions.SkyIslandWorld;
 import com.github.tatercertified.carpetskyadditionals.interfaces.EntityIslandDataInterface;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
@@ -35,7 +37,7 @@ public abstract class EntityMixin implements EntityIslandDataInterface {
     public abstract World getWorld();
 
     @Shadow
-    public World world;
+    private World world;
 
     @Shadow
     public abstract double getX();
@@ -90,6 +92,7 @@ public abstract class EntityMixin implements EntityIslandDataInterface {
         return FabricDimensions.teleport(((Entity)(Object)this), destination, target);
     }
 
+    @Unique
     private TeleportTarget netherTeleportTarget(ServerWorld destination, SkyIslandWorld current) {
         boolean isDestinationNether = destination == current.getNether();
         WorldBorder worldBorder = destination.getWorldBorder();
